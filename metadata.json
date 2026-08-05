@@ -1,0 +1,6 @@
+{
+  "name": "Feria de Robótica Nobsa",
+  "description": "Plataforma oficial de gestión e inscripciones para la Feria de Robótica del Municipio de Nobsa, Colombia. Registro en tiempo real, credenciales digitales QR y panel de administración.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
