@@ -1,6 +1,7 @@
 import express from 'express';
 import { randomUUID } from 'node:crypto';
 import type { Registration, RegistrationStatus } from '../src/app/models/registration.model';
+import { createParticipationCertificate } from '../src/server/certificate.js';
 import {
     countInstitutionCategoryRegistrations,
     findRegistrationByCodeOrDocument,
@@ -26,7 +27,7 @@ api.get('/api/registrations', async (req, res) => {
         if (category && category !== 'all') query['category'] = category;
         if (search) {
             const escapedSearch = search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-            query['$or'] = ['teamName', 'projectTitle', 'institution', 'city', 'code', 'leaderName']
+            query['$or'] = ['teamName', 'projectTitle', 'institution', 'city', 'code', 'leaderName', 'leaderDoc', 'mentorName', 'mentorDoc']
                 .map(field => ({ [field]: { $regex: escapedSearch, $options: 'i' } }));
         }
         const data = await (await registrationsCollection()).find(query).sort({ createdAt: -1 }).toArray();
@@ -45,6 +46,22 @@ api.get('/api/registrations/:codeOrId', async (req, res) => {
     } catch (error) {
         console.error('Error consultando inscripción:', error);
         return res.status(503).json({ success: false, message: 'La base de datos no está disponible.' });
+    }
+});
+
+api.get('/api/certificates/:id', async (req, res) => {
+    try {
+        const registration = await findRegistrationByCodeOrDocument(req.params.id);
+        if (!registration) return res.status(404).json({ success: false, message: 'Proyecto no encontrado.' });
+        if (!registration.mentorName || !registration.mentorDoc) return res.status(422).json({ success: false, message: 'El proyecto no tiene docente a cargo registrado.' });
+        const pdf = await createParticipationCertificate(registration);
+        const filename = `Certificado_${registration.projectTitle.replace(/[^a-z0-9]+/gi, '_').replace(/^_|_$/g, '')}.pdf`;
+        res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+        return res.send(pdf);
+    } catch (error) {
+        console.error('Error generando certificado:', error);
+        return res.status(500).json({ success: false, message: 'No fue posible generar el certificado.' });
     }
 });
 

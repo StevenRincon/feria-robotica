@@ -112,7 +112,7 @@ import { Registration, RegistrationStatus } from '../../models/registration.mode
                 type="text" 
                 [(ngModel)]="searchFilter" 
                 (ngModelChange)="onFilterChange()"
-                placeholder="FILTRAR POR EQUIPO, PROYECTO, COLEGIO O LÍDER..."
+                placeholder="BUSCAR PROYECTO, COLEGIO, DOCENTE O DOCUMENTO..."
                 class="w-full pl-10 pr-4 py-2.5 bg-[#05060a] border border-[#00f3ff]/30 text-white text-xs font-mono uppercase placeholder-gray-600 focus:outline-none focus:border-[#00f3ff]" />
             </div>
 
@@ -141,7 +141,7 @@ import { Registration, RegistrationStatus } from '../../models/registration.mode
                   <th class="p-4">Equipo / Proyecto</th>
                   <th class="p-4">Categoría</th>
                   <th class="p-4">Institución & Ciudad</th>
-                  <th class="p-4">Líder & Contacto</th>
+                  <th class="p-4">Docente a cargo</th>
                   <th class="p-4">Estado</th>
                   <th class="p-4 text-right">Acciones</th>
                 </tr>
@@ -172,9 +172,8 @@ import { Registration, RegistrationStatus } from '../../models/registration.mode
                     </td>
 
                     <td class="p-4">
-                      <div class="font-bold text-gray-200 uppercase">{{ item.leaderName }}</div>
-                      <div class="text-[10px] text-gray-400">{{ item.leaderEmail }}</div>
-                      <div class="text-[10px] text-[#00f3ff]">{{ item.leaderPhone }}</div>
+                      <div class="font-bold text-gray-200 uppercase">{{ item.mentorName || 'Sin docente' }}</div>
+                      <div class="text-[10px] text-[#00f3ff]">DOC: {{ item.mentorDoc || 'No registrado' }}</div>
                     </td>
 
                     <td class="p-4">
@@ -199,6 +198,15 @@ import { Registration, RegistrationStatus } from '../../models/registration.mode
                           title="Ver detalle"
                           class="p-1.5 text-[#00f3ff] hover:bg-[#00f3ff]/10">
                           <mat-icon class="text-base">visibility</mat-icon>
+                        </button>
+
+                        <button
+                          (click)="downloadCertificate(item)"
+                          type="button"
+                          title="Descargar certificado protegido"
+                          [disabled]="!item.mentorDoc"
+                          class="p-1.5 text-emerald-400 hover:bg-emerald-500/10 disabled:text-gray-600 disabled:cursor-not-allowed">
+                          <mat-icon class="text-base">picture_as_pdf</mat-icon>
                         </button>
 
                         <button 
@@ -363,5 +371,27 @@ export class AdminPanelComponent implements OnDestroy {
 
   exportToJson(): void {
     this.regService.exportToJson(this.registrations());
+  }
+
+  downloadCertificate(item: Registration): void {
+    if (!item.mentorDoc) {
+      alert('Este proyecto no tiene un docente a cargo con documento registrado.');
+      return;
+    }
+
+    this.regService.downloadCertificate(item.id).subscribe({
+      next: blob => {
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `Certificado_${item.projectTitle.replace(/[^a-z0-9]+/gi, '_').replace(/^_|_$/g, '')}.pdf`;
+        link.click();
+        URL.revokeObjectURL(url);
+      },
+      error: error => {
+        console.error('Error descargando certificado:', error);
+        alert('No fue posible generar el certificado.');
+      }
+    });
   }
 }

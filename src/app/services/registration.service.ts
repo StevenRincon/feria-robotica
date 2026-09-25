@@ -228,6 +228,10 @@ export class RegistrationService {
     );
   }
 
+  downloadCertificate(id: string): Observable<Blob> {
+    return this.http.get(`/api/certificates/${encodeURIComponent(id)}`, { responseType: 'blob' });
+  }
+
   exportToCsv(data: Registration[]): void {
     if (!data || data.length === 0) return;
 
