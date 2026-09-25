@@ -7,7 +7,7 @@ import {
     hasDuplicateParticipantDocuments,
     registrationsCollection,
     updateRegistrationStatus,
-} from '../src/server/database';
+} from '../src/server/database.js';
 
 const api = express();
 api.use(express.json());
