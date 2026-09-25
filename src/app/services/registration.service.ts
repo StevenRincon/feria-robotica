@@ -232,6 +232,17 @@ export class RegistrationService {
     return this.http.get(`/api/certificates/${encodeURIComponent(id)}`, { responseType: 'blob' });
   }
 
+  searchCertificates(filters: { project?: string; teacher?: string; teacherDoc?: string; institution?: string; category?: string }): Observable<Registration[]> {
+    const params = new URLSearchParams();
+    Object.entries(filters).forEach(([key, value]) => {
+      if (value?.trim() && value !== 'all') params.set(key, value.trim());
+    });
+
+    return this.http.get<{ success: boolean; data: Registration[] }>(`/api/registrations?${params.toString()}`).pipe(
+      map(response => response.data || [])
+    );
+  }
+
   exportToCsv(data: Registration[]): void {
     if (!data || data.length === 0) return;
 

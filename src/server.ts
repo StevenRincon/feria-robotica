@@ -180,12 +180,24 @@ app.get('/api/registrations', async (req, res) => {
   const search = (req.query['search'] as string || '').toLowerCase();
 
   const query: Record<string, unknown> = {};
+  const filters: Record<string, unknown>[] = [];
   if (category && category !== 'all') query['category'] = category;
   if (search) {
     const escapedSearch = search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    query['$or'] = ['teamName', 'projectTitle', 'institution', 'city', 'code', 'leaderName', 'leaderDoc', 'mentorName', 'mentorDoc']
-      .map(field => ({ [field]: { $regex: escapedSearch, $options: 'i' } }));
+    filters.push({
+      $or: ['teamName', 'projectTitle', 'institution', 'city', 'code', 'leaderName', 'leaderDoc', 'mentorName', 'mentorDoc']
+        .map(field => ({ [field]: { $regex: escapedSearch, $options: 'i' } }))
+    });
   }
+  const project = String(req.query['project'] || '').trim();
+  const teacher = String(req.query['teacher'] || '').trim();
+  const teacherDoc = String(req.query['teacherDoc'] || '').trim();
+  const institution = String(req.query['institution'] || '').trim();
+  if (project) filters.push({ $or: ['projectTitle', 'teamName'].map(field => ({ [field]: { $regex: project.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), $options: 'i' } })) });
+  if (teacher) filters.push({ mentorName: { $regex: teacher.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), $options: 'i' } });
+  if (teacherDoc) filters.push({ mentorDoc: { $regex: teacherDoc.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), $options: 'i' } });
+  if (institution) filters.push({ institution: { $regex: institution.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), $options: 'i' } });
+  if (filters.length) query['$and'] = filters;
 
   try {
     const data = await (await registrationsCollection()).find(query).sort({ createdAt: -1 }).toArray();
