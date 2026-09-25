@@ -223,7 +223,8 @@ app.get('/api/registrations/:codeOrId', async (req, res) => {
 
 app.get('/api/certificates/:id', async (req, res) => {
   try {
-    const registration = await findRegistrationByCodeOrDocument(req.params.id);
+    const certificateId = decodeURIComponent(req.params.id).trim();
+    const registration = await (await registrationsCollection()).findOne({ $or: [{ id: certificateId }, { code: certificateId }] });
     if (!registration) return res.status(404).json({ success: false, message: 'Proyecto no encontrado.' });
     if (!registration.mentorName || !registration.mentorDoc) return res.status(422).json({ success: false, message: 'El proyecto no tiene docente a cargo registrado.' });
     const pdf = await createParticipationCertificate(registration);

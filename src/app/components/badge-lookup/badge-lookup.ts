@@ -138,8 +138,11 @@ export class BadgeLookupComponent {
                 const link = document.createElement('a');
                 link.href = url;
                 link.download = `Certificado_${item.projectTitle.replace(/[^a-z0-9]+/gi, '_').replace(/^_|_$/g, '')}.pdf`;
+                link.style.display = 'none';
+                document.body.appendChild(link);
                 link.click();
-                URL.revokeObjectURL(url);
+                link.remove();
+                window.setTimeout(() => URL.revokeObjectURL(url), 1000);
             },
             error: () => this.errorMessage.set('No fue posible generar el certificado.')
         });
