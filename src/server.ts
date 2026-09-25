@@ -319,7 +319,7 @@ app.post('/api/registrations', async (req, res) => {
       projectDescription: body.projectDescription || '',
       technicalSpecs: body.technicalSpecs || '',
       spaceRequirements: body.spaceRequirements || '',
-      status: 'Confirmado'
+      status: 'Aprobado'
     };
 
     await (await registrationsCollection()).insertOne(newReg);
