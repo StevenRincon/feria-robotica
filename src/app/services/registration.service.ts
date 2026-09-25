@@ -229,7 +229,7 @@ export class RegistrationService {
   }
 
   downloadCertificate(id: string): Observable<Blob> {
-    return this.http.get(`/api/certificates/${encodeURIComponent(id)}`, { responseType: 'blob' });
+    return this.http.get(`/api/certificates?registrationId=${encodeURIComponent(id)}`, { responseType: 'blob' });
   }
 
   searchCertificates(filters: { project?: string; teacher?: string; teacherDoc?: string; institution?: string; category?: string }): Observable<Registration[]> {

@@ -238,6 +238,24 @@ app.get('/api/certificates/:id', async (req, res) => {
   }
 });
 
+app.get('/api/certificates', async (req, res) => {
+  try {
+    const registrationId = String(req.query['registrationId'] || '').trim();
+    if (!registrationId) return res.status(400).json({ success: false, message: 'Falta el identificador del proyecto.' });
+    const registration = await (await registrationsCollection()).findOne({ $or: [{ id: registrationId }, { code: registrationId }] });
+    if (!registration) return res.status(404).json({ success: false, message: 'Proyecto no encontrado.' });
+    if (!registration.mentorName || !registration.mentorDoc) return res.status(422).json({ success: false, message: 'El proyecto no tiene docente a cargo registrado.' });
+    const pdf = await createParticipationCertificate(registration);
+    const filename = `Certificado_${registration.projectTitle.replace(/[^a-z0-9]+/gi, '_').replace(/^_|_$/g, '')}.pdf`;
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    return res.send(pdf);
+  } catch (error) {
+    console.error('Error generando certificado:', error);
+    return res.status(500).json({ success: false, message: 'No fue posible generar el certificado.' });
+  }
+});
+
 app.post('/api/registrations', async (req, res) => {
   try {
     const body = req.body;
