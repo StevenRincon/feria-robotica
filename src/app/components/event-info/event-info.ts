@@ -63,7 +63,7 @@ import { MatIconModule } from '@angular/material/icon';
           <div class="flex flex-wrap items-center justify-between gap-4 mb-8 pb-6 border-b border-[#00f3ff]/20">
             <div>
               <h3 class="font-black text-2xl text-white uppercase tracking-tight">CRONOGRAMA DE ACTIVIDADES</h3>
-              <p class="text-xs font-mono text-[#00f3ff] mt-1">20 Y 21 DE NOVIEMBRE DE 2026 // NOBSA, BOYACÁ</p>
+              <p class="text-xs font-mono text-[#00f3ff] mt-1">VIERNES 6 DE NOVIEMBRE DE 2026 // I.E. TÉCNICA DE NAZARETH</p>
             </div>
 
             <!-- Day Selector -->
@@ -75,7 +75,7 @@ import { MatIconModule } from '@angular/material/icon';
                 [class.text-gray-300]="activeDay() !== 1"
                 type="button" 
                 class="px-4 py-2 font-mono text-xs font-bold uppercase transition-all">
-                Día 1: Viernes 20
+                Jornada de la mañana
               </button>
 
               <button 
@@ -85,7 +85,7 @@ import { MatIconModule } from '@angular/material/icon';
                 [class.text-gray-300]="activeDay() !== 2"
                 type="button" 
                 class="px-4 py-2 font-mono text-xs font-bold uppercase transition-all">
-                Día 2: Sábado 21
+                Jornada de la tarde
               </button>
             </div>
           </div>
@@ -128,7 +128,7 @@ import { MatIconModule } from '@angular/material/icon';
                   02:00 PM - 05:00 PM
                 </div>
                 <div>
-                  <h4 class="text-sm font-bold text-white uppercase tracking-wide">Muestra Interactiva de Proyectos Educativos</h4>
+                  <h4 class="text-sm font-bold text-white uppercase tracking-wide">Presentación de Proyectos para Primaria</h4>
                   <p class="text-xs text-gray-400 mt-1">Exposición abierta a colegios invitados y comunidad general. Votación del público asistente para la mención especial.</p>
                 </div>
               </div>
@@ -158,17 +158,15 @@ import { MatIconModule } from '@angular/material/icon';
                 </div>
               </div>
 
-              <div class="flex items-start gap-4 p-4 bg-[#11141d] border border-[#00f3ff]/20">
-                <div class="text-xs font-mono font-bold text-black bg-amber-400 px-3 py-1.5 shrink-0 uppercase">
-                  02:30 PM - 04:30 PM
-                </div>
-                <div>
-                  <h4 class="text-sm font-bold text-white uppercase tracking-wide">Ceremonia de Premiación y Clausura Oficial</h4>
-                  <p class="text-xs text-gray-400 mt-1">Entrega de trofeos, incentivos económicos, medallas y certificados oficiales firmados por la Alcaldía Municipal de Nobsa.</p>
-                </div>
-              </div>
             </div>
           }
+
+          <div class="mt-8 grid md:grid-cols-2 gap-4">
+            <div class="p-5 bg-[#11141d] border border-emerald-500/30 md:col-span-2">
+              <h4 class="text-sm font-bold text-emerald-300 uppercase tracking-wide mb-2">Alimentación y contacto</h4>
+              <p class="text-xs text-gray-300 leading-relaxed">Por proyecto: máximo 2 estudiantes y 1 docente acompañante. Se ofrecerá refrigerio y almuerzo. Teléfonos: 3002906330, 3167765610 y 3204197454.</p>
+            </div>
+          </div>
 
         </div>
 

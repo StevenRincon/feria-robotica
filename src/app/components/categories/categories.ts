@@ -79,19 +79,11 @@ import { CategoryId } from '../../models/registration.model';
                   </ul>
                 </div>
 
-                <!-- Prizes -->
-                <div class="bg-amber-500/10 border border-amber-500/30 p-3.5 mb-6">
-                  <h4 class="text-xs font-mono font-bold text-amber-400 uppercase tracking-wider flex items-center gap-1 mb-2">
-                    <mat-icon class="text-sm text-amber-400">emoji_events</mat-icon> PREMIACIÓN OFICIAL
-                  </h4>
-                  <div class="space-y-1 text-xs text-gray-200 font-mono font-bold">
-                    @for (prize of cat.prizes; track prize) {
-                      <div class="flex items-center justify-between">
-                        <span>{{ prize }}</span>
-                      </div>
-                    }
-                  </div>
-                </div>
+                <a [href]="cat.rulesUrl" target="_blank" rel="noopener noreferrer"
+                  class="w-full py-3 mb-6 text-xs font-mono font-bold uppercase tracking-wider text-amber-300 border border-amber-500/40 hover:bg-amber-500/10 transition-all flex items-center justify-center gap-2">
+                  <mat-icon class="text-sm">description</mat-icon>
+                  <span>Ver reglamento y anexo</span>
+                </a>
               </div>
 
               <!-- Action Button -->

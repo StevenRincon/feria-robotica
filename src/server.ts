@@ -118,7 +118,7 @@ let registrations: RegistrationItem[] = [
     code: 'NOBSA-ROB-2026-E102',
     createdAt: new Date('2026-08-03T09:00:00Z').toISOString(),
     category: 'educativos',
-    categoryName: 'Proyectos educativos en robótica',
+    categoryName: 'Proyectos de automatización, electrónica o robótica para primaria',
     teamName: 'RoboKids Duitama',
     projectTitle: 'Kit Interactivo de Robótica Educativa para Escuelas Rurales',
     institution: 'Colegio Salesiano de Duitama',
@@ -169,8 +169,8 @@ let registrations: RegistrationItem[] = [
 
 function getCategoryName(cat: string): string {
   if (cat === 'seguidores') return 'Seguidores de línea';
-  if (cat === 'educativos') return 'Proyectos educativos en robótica';
-  return 'Proyecto de automatización electrónica';
+  if (cat === 'educativos') return 'Proyectos de automatización, electrónica o robótica para primaria';
+  return 'Automatización electrónica o Robótica para bachillerato';
 }
 
 // REST API Endpoints
@@ -368,9 +368,9 @@ app.post('/api/chat', async (req, res) => {
     let reply = "¡Hola! Soy NobsaBot, el asistente de la Feria de Robótica Nobsa 2026. ";
 
     if (msgLower.includes('categor') || msgLower.includes('modalid')) {
-      reply += "La feria cuenta con 3 categorías principales:\n1. Proyecto de automatización electrónica\n2. Seguidores de línea\n3. Proyectos educativos en robótica. ¿Sobre cuál te gustaría saber más requisitos?";
+      reply += "El concurso cuenta con 3 categorías:\n1. Seguidores de línea\n2. Automatización electrónica o Robótica para bachillerato\n3. Proyectos de automatización, electrónica o Robótica para primaria. ¿Sobre cuál te gustaría saber más requisitos?";
     } else if (msgLower.includes('fecha') || msgLower.includes('cuándo') || msgLower.includes('donde') || msgLower.includes('lugar')) {
-      reply += "El evento se llevará a cabo los días 20 y 21 de Noviembre de 2026 en el Centro Cultural y Polideportivo Municipal de Nobsa, Boyacá, Colombia. ¡Inscripciones abiertas!";
+      reply += "El III Concurso de robótica y automatización electrónica en la I.E. Técnica de Nazareth se realizará el viernes 6 de noviembre de 2026. Para inquietudes: 3002906330, 3167765610 o 3204197454.";
     } else if (msgLower.includes('requisito') || msgLower.includes('regla') || msgLower.includes('pista')) {
       reply += "Para Seguidores de Línea la pista es de fondo blanco con línea negra de 19mm. Para Automatización y Educativos se evaluará innovación, utilidad práctica y sustentación oral.";
     } else if (msgLower.includes('costo') || msgLower.includes('precio') || msgLower.includes('pago')) {

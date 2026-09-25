@@ -28,62 +28,62 @@ export class RegistrationService {
   readonly categories: CategoryInfo[] = [
     {
       id: 'automatizacion',
-      title: 'Proyecto de Automatización Electrónica',
-      shortDesc: 'Sistemas inteligentes, control industrial, domótica, IoT y agrotecnología.',
-      fullDesc: 'Diseñado para prototipos funcionales que integren sensores, microcontroladores, actuadores y lógica de control electrónica para solucionar problemas reales en la industria, campo o ciudad.',
+      title: 'Automatización electrónica o Robótica para bachillerato',
+      shortDesc: 'Proyectos de automatización electrónica o robótica para estudiantes de bachillerato.',
+      fullDesc: 'Categoría dirigida a estudiantes de bachillerato que presenten proyectos funcionales de automatización electrónica o robótica, con una solución clara y demostrable.',
       icon: 'settings_suggest',
       badgeColor: 'from-cyan-500 to-blue-600',
-      prizes: ['1er Lugar: $3,000,000 COP + Trofeo + Kit de Desarrollo', '2do Lugar: $1,500,000 COP + Medalla', '3er Lugar: $800,000 COP'],
+      rulesUrl: 'https://drive.google.com/drive/folders/REGLAMENTO-AUTOMATIZACION',
       rulesHighlights: [
-        'Prototipos funcionales operativos durante la evaluación.',
-        'Mantenimiento de consumo eléctrico seguro (Máximo 110V 15A).',
-        'Presentación oral de 10 minutos ante jurado técnico.',
-        'Documentación técnica básica disponible en físico/digital.'
+        'Participación para estudiantes de bachillerato.',
+        'El proyecto debe ser funcional y demostrable.',
+        'Se debe presentar el proyecto ante el jurado.',
+        'Consultar el reglamento y las especificaciones anexas.'
       ],
       specs: {
-        maxTeamSize: 4,
-        targetAudience: 'Estudiantes de secundaria, universitarios, aprendices SENA e independientes.',
-        dimensionsOrTrack: 'Espacio de mesa asignado: 1.5m x 1.0m'
+        maxTeamSize: 2,
+        targetAudience: 'Estudiantes de bachillerato.',
+        dimensionsOrTrack: 'Máximo 2 estudiantes y 1 docente acompañante.'
       }
     },
     {
       id: 'seguidores',
       title: 'Seguidores de Línea',
-      shortDesc: 'Robots autónomos de alta velocidad y precisión sobre pistas de contraste.',
-      fullDesc: 'Competencia en pista cerrada de fondo blanco con línea negra. Los robots velocistas deben completar el circuito de curvas y rectas en el menor tiempo registrado autónomamente.',
+      shortDesc: 'Robots autónomos que siguen una línea en una pista de competencia.',
+      fullDesc: 'Competencia para robots seguidores de línea. Consulta el reglamento anexo para conocer las características de la pista y las condiciones de participación.',
       icon: 'alt_route',
       badgeColor: 'from-amber-400 to-orange-500',
-      prizes: ['1er Lugar: $2,500,000 COP + Trofeo de Velocidad', '2do Lugar: $1,200,000 COP + Medalla', '3er Lugar: $600,000 COP'],
+      rulesUrl: 'https://drive.google.com/drive/folders/REGLAMENTO-SEGUIDORES-DE-LINEA',
       rulesHighlights: [
-        'Ancho de línea negra: 19 mm ± 1 mm sobre fondo blanco.',
-        'Dimensiones del robot: Máximo 25cm de largo x 25cm de ancho sin límite de peso.',
-        'Autonomía total: Sin ningún tipo de control remoto o comunicación inalámbrica.',
-        '3 intentos por equipo; se registrará la mejor vuelta válida.'
+        'Robot autónomo para seguir una línea.',
+        'La competencia se realizará en la pista oficial.',
+        'Consultar medidas y condiciones en el reglamento.',
+        'Revisar las especificaciones técnicas antes de inscribirse.'
       ],
       specs: {
-        maxTeamSize: 3,
-        targetAudience: 'Clubes de robótica, estudiantes de colegio y universitarios.',
-        dimensionsOrTrack: 'Pista de MDF laminada 4m x 2.5m con curvas de radio min 15cm.'
+        maxTeamSize: 2,
+        targetAudience: 'Participantes del concurso de seguidores de línea.',
+        dimensionsOrTrack: 'Máximo 2 estudiantes y 1 docente acompañante.'
       }
     },
     {
       id: 'educativos',
-      title: 'Proyectos Educativos en Robótica',
-      shortDesc: 'Kits pedagógicos, robots didácticos y experiencias STEM e inclusivas.',
-      fullDesc: 'Iniciativas enfocadas en la enseñanza de programación, electrónica y pensamiento computacional, desarrolladas para escuelas, instituciones o proyectos de impacto social.',
+      title: 'Proyectos de Automatización, Electrónica o Robótica para Primaria',
+      shortDesc: 'Proyectos de automatización, electrónica o robótica desarrollados para primaria.',
+      fullDesc: 'Categoría para proyectos de automatización, electrónica o robótica dirigidos a estudiantes de primaria, con una propuesta clara, creativa y demostrable.',
       icon: 'school',
       badgeColor: 'from-emerald-400 to-teal-600',
-      prizes: ['1er Lugar: $2,000,000 COP + Kit de Aula STEM', '2do Lugar: $1,000,000 COP + Reconocimiento', '3er Lugar: $500,000 COP'],
+      rulesUrl: 'https://drive.google.com/drive/folders/REGLAMENTO-PRIMARIA',
       rulesHighlights: [
-        'Enfoque metodológico claro y aplicación en entornos educativos.',
-        'Demostración interactiva abierta al público asistente.',
-        'Evaluación de creatividad, accesibilidad y facilidad de uso.',
-        'Permitido uso de plataformas libres (Arduino, Micro:bit, LEGO, Raspberry, Scratch).'
+        'Participación para estudiantes de primaria.',
+        'El proyecto debe relacionarse con automatización, electrónica o robótica.',
+        'Se valorará la creatividad y la explicación del proyecto.',
+        'Consultar el reglamento y las especificaciones anexas.'
       ],
       specs: {
-        maxTeamSize: 5,
-        targetAudience: 'Docentes, estudiantes de primaria/bachillerato, semilleros de investigación.',
-        dimensionsOrTrack: 'Stand de exhibición en la zona de feria interactiva.'
+        maxTeamSize: 2,
+        targetAudience: 'Estudiantes de primaria.',
+        dimensionsOrTrack: 'Máximo 2 estudiantes y 1 docente acompañante.'
       }
     }
   ];
@@ -105,13 +105,13 @@ export class RegistrationService {
     {
       id: 'f3',
       question: '¿Cuántos integrantes pueden conformar un equipo?',
-      answer: 'Según la categoría: Automatización hasta 4 integrantes, Seguidores de línea hasta 3 integrantes, y Proyectos Educativos hasta 5 integrantes. Todos los equipos pueden inscribir 1 mentor/tutor.',
+      answer: 'Cada proyecto puede inscribir máximo 2 estudiantes y 1 docente acompañante.',
       category: 'Requisitos'
     },
     {
       id: 'f4',
       question: '¿Cuál es la fecha límite de inscripción?',
-      answer: 'Las inscripciones estarán abiertas hasta el 12 de Noviembre de 2026 a las 11:59 PM o hasta agotar los cupos máximos por categoría.',
+      answer: 'El concurso se realizará el viernes 6 de noviembre de 2026. Consulta la organización para conocer el cierre de inscripciones.',
       category: 'Inscripción'
     },
     {
@@ -123,7 +123,7 @@ export class RegistrationService {
     {
       id: 'f6',
       question: '¿Habrá alimentación y punto de recarga para baterías?',
-      answer: 'Sí. El recinto del Centro Cultural y Polideportivo Municipal de Nobsa contará con zona de pit/boxes equipada con tomas eléctricas de 110V y estación de hidratación para participantes.',
+      answer: 'Sí. Por proyecto se ofrecerá un refrigerio y almuerzo para máximo 2 estudiantes y 1 docente acompañante.',
       category: 'Competencia'
     }
   ];

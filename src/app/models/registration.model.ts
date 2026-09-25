@@ -44,7 +44,7 @@ export interface CategoryInfo {
   fullDesc: string;
   icon: string;
   badgeColor: string;
-  prizes: string[];
+  rulesUrl: string;
   rulesHighlights: string[];
   specs: {
     maxTeamSize: number;

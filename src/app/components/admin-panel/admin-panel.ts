@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnDestroy, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
@@ -124,7 +124,7 @@ import { Registration, RegistrationStatus } from '../../models/registration.mode
                 <option value="all">Todas las Categorías</option>
                 <option value="automatizacion">Automatización Electrónica</option>
                 <option value="seguidores">Seguidores de Línea</option>
-                <option value="educativos">Robótica Educativa</option>
+                <option value="educativos">Proyectos para primaria</option>
               </select>
             </div>
 
@@ -292,8 +292,10 @@ import { Registration, RegistrationStatus } from '../../models/registration.mode
     </section>
   `
 })
-export class AdminPanelComponent {
+export class AdminPanelComponent implements OnDestroy {
   private readonly testPassword = 'T1cN0b54';
+  private readonly sessionDurationMs = 3 * 60 * 1000;
+  private sessionTimeoutId: ReturnType<typeof setTimeout> | null = null;
   regService = inject(RegistrationService);
 
   registrations = this.regService.registrations;
@@ -311,8 +313,25 @@ export class AdminPanelComponent {
     this.authenticationError.set(!this.isAuthenticated());
     if (this.isAuthenticated()) {
       this.password = '';
+      this.clearSessionTimeout();
+      this.sessionTimeoutId = setTimeout(() => {
+        this.isAuthenticated.set(false);
+        this.selectedDetail.set(null);
+        this.sessionTimeoutId = null;
+      }, this.sessionDurationMs);
       this.regService.loadRegistrations(this.categoryFilter, this.searchFilter).subscribe();
       this.regService.loadStats().subscribe();
+    }
+  }
+
+  ngOnDestroy(): void {
+    this.clearSessionTimeout();
+  }
+
+  private clearSessionTimeout(): void {
+    if (this.sessionTimeoutId) {
+      clearTimeout(this.sessionTimeoutId);
+      this.sessionTimeoutId = null;
     }
   }
 

@@ -83,7 +83,7 @@ interface PrototypeCard {
             [class.border-[#00f3ff]/30]="filterCategory() !== 'educativos'"
             type="button" 
             class="px-5 py-2.5 border transition-all">
-            Robótica Educativa
+            Proyectos para primaria
           </button>
         </div>
 
@@ -169,7 +169,7 @@ export class GalleryComponent {
       id: 'p3',
       title: 'Kit Didáctico STEM Modular',
       category: 'educativos',
-      categoryName: 'Robótica Educativa',
+      categoryName: 'Proyectos para primaria',
       institution: 'Colegio Salesiano Duitama',
       image: 'https://images.unsplash.com/photo-1561144212-6b3a32f63f53?auto=format&fit=crop&w=600&q=80',
       description: 'Plataforma educativa con bloques impresos en 3D para la enseñanza de programación gráfica en escuelas rural de Boyacá.',
@@ -199,7 +199,7 @@ export class GalleryComponent {
       id: 'p6',
       title: 'Brazo Robótico Articulado 4DOF',
       category: 'educativos',
-      categoryName: 'Robótica Educativa',
+      categoryName: 'Proyectos para primaria',
       institution: 'Universidad Santo Tomás Tunja',
       image: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=600&q=80',
       description: 'Manipulador didáctico para enseñanza de cinemática inversa y visión por computador.',

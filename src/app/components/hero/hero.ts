@@ -50,7 +50,7 @@ interface TimeRemaining {
             </h1>
 
             <p class="text-base sm:text-lg text-slate-300 max-w-2xl font-normal leading-relaxed">
-              El máximo encuentro de <strong class="text-[#00f3ff]">automatización industrial</strong>, <strong class="text-amber-300">seguidores de línea velocistas</strong> y <strong class="text-emerald-300">robótica educativa</strong> en Boyacá. Impulsando la innovación tecnológica con premios reales.
+              Participa en el <strong class="text-[#00f3ff]">III Concurso de robótica y automatización electrónica</strong> de la I.E. Técnica de Nazareth. Tres categorías para estudiantes de primaria y bachillerato.
             </p>
 
             <!-- Key Event Meta Badges -->
@@ -58,7 +58,7 @@ interface TimeRemaining {
               <div class="p-3 bg-[#11141d] border border-[#00f3ff]/30 flex items-center gap-3">
                 <mat-icon class="text-[#00f3ff]">calendar_month</mat-icon>
                 <div>
-                  <div class="font-bold text-white text-sm">20 y 21 NOV</div>
+                  <div class="font-bold text-white text-sm">6 NOVIEMBRE</div>
                   <div class="text-[#00f3ff]/70 text-[10px]">AÑO 2026</div>
                 </div>
               </div>
@@ -67,15 +67,15 @@ interface TimeRemaining {
                 <mat-icon class="text-[#00f3ff]">location_on</mat-icon>
                 <div>
                   <div class="font-bold text-white text-sm">NOBSA, BOYACÁ</div>
-                  <div class="text-[#00f3ff]/70 text-[10px]">POLIDEPORTIVO</div>
+                  <div class="text-[#00f3ff]/70 text-[10px]">I.E. TÉCNICA DE NAZARETH</div>
                 </div>
               </div>
 
               <div class="p-3 bg-[#11141d] border border-[#00f3ff]/30 flex items-center gap-3 col-span-2 sm:col-span-1">
-                <mat-icon class="text-[#00f3ff]">emoji_events</mat-icon>
+                <mat-icon class="text-[#00f3ff]">category</mat-icon>
                 <div>
-                  <div class="font-bold text-white text-sm">+$12M COP</div>
-                  <div class="text-[#00f3ff]/70 text-[10px]">EN PREMIACIÓN</div>
+                  <div class="font-bold text-white text-sm">3 CATEGORÍAS</div>
+                  <div class="text-[#00f3ff]/70 text-[10px]">CON REGLAMENTO</div>
                 </div>
               </div>
             </div>
@@ -191,7 +191,7 @@ export class HeroComponent implements OnInit, OnDestroy {
   regService = inject(RegistrationService);
   stats = this.regService.stats;
 
-  targetDate = new Date('2026-11-20T08:00:00-05:00').getTime();
+  targetDate = new Date('2026-11-06T08:00:00-05:00').getTime();
   time = signal<TimeRemaining>({ days: 0, hours: 0, minutes: 0, seconds: 0 });
   private timerId: ReturnType<typeof setInterval> | null = null;
 
