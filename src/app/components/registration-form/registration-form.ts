@@ -330,6 +330,14 @@ import { CategoryId, Registration } from '../../models/registration.model';
                     </div>
                   </div>
 
+                  <div class="pt-4 border-t border-[#00f3ff]/20">
+                    <h4 class="text-xs font-mono font-bold text-gray-300 uppercase tracking-wider mb-4">PROFESOR / TUTOR (OPCIONAL)</h4>
+                    <div class="grid sm:grid-cols-2 gap-4">
+                      <input type="text" formControlName="mentorName" placeholder="Nombre completo del profesor o tutor" class="w-full px-4 py-3 bg-[#05060a] border border-[#00f3ff]/30 text-white placeholder-gray-600 text-xs font-mono" />
+                      <input type="text" formControlName="mentorDoc" placeholder="Documento del profesor o tutor" class="w-full px-4 py-3 bg-[#05060a] border border-[#00f3ff]/30 text-white placeholder-gray-600 text-xs font-mono" />
+                    </div>
+                  </div>
+
                   <!-- Additional Members -->
                   <div class="pt-4 border-t border-[#00f3ff]/20">
                     <div class="flex items-center justify-between mb-4">
@@ -337,6 +345,7 @@ import { CategoryId, Registration } from '../../models/registration.model';
                       <button 
                         (click)="addMember()"
                         type="button" 
+                        [disabled]="membersArray.length >= 1"
                         class="px-3 py-1.5 bg-[#05060a] text-[#00f3ff] hover:bg-[#00f3ff] hover:text-black border border-[#00f3ff]/30 text-xs font-mono font-bold uppercase transition-all flex items-center gap-1">
                         <mat-icon class="text-sm">add</mat-icon> AGREGAR INTEGRANTE
                       </button>
@@ -501,6 +510,8 @@ export class RegistrationFormComponent {
     leaderDoc: ['', Validators.required],
     leaderEmail: ['', [Validators.required, Validators.email]],
     leaderPhone: ['', Validators.required],
+    mentorName: [''],
+    mentorDoc: [''],
     members: this.fb.array([]),
     projectDescription: ['', [Validators.required, Validators.minLength(15)]],
     technicalSpecs: [''],
@@ -525,6 +536,7 @@ export class RegistrationFormComponent {
   }
 
   addMember(): void {
+    if (this.membersArray.length >= 1) return;
     this.membersArray.push(
       this.fb.group({
         fullName: ['', Validators.required],

@@ -6,7 +6,16 @@ import {
 } from '@angular/ssr/node';
 import express from 'express';
 import {join} from 'node:path';
+import {randomUUID} from 'node:crypto';
 import { GoogleGenAI } from '@google/genai';
+import {
+  countInstitutionCategoryRegistrations,
+  findRegistrationByCodeOrDocument,
+  hasDuplicateParticipantDocuments,
+  registrationsCollection,
+  updateRegistrationStatus,
+} from './server/database';
+import type { Registration, RegistrationStatus } from './app/models/registration.model';
 
 const browserDistFolder = join(import.meta.dirname, '../browser');
 
@@ -165,55 +174,93 @@ function getCategoryName(cat: string): string {
 }
 
 // REST API Endpoints
-app.get('/api/registrations', (req, res) => {
+app.get('/api/registrations', async (req, res) => {
   const category = req.query['category'] as string;
   const search = (req.query['search'] as string || '').toLowerCase();
 
-  let filtered = [...registrations];
-  if (category && category !== 'all') {
-    filtered = filtered.filter(r => r.category === category);
-  }
+  const query: Record<string, unknown> = {};
+  if (category && category !== 'all') query['category'] = category;
   if (search) {
-    filtered = filtered.filter(r =>
-      r.teamName.toLowerCase().includes(search) ||
-      r.projectTitle.toLowerCase().includes(search) ||
-      r.institution.toLowerCase().includes(search) ||
-      r.city.toLowerCase().includes(search) ||
-      r.code.toLowerCase().includes(search) ||
-      r.leaderName.toLowerCase().includes(search)
-    );
+    const escapedSearch = search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    query['$or'] = ['teamName', 'projectTitle', 'institution', 'city', 'code', 'leaderName']
+      .map(field => ({ [field]: { $regex: escapedSearch, $options: 'i' } }));
   }
-  return res.json({ success: true, count: filtered.length, data: filtered });
+
+  try {
+    const data = await (await registrationsCollection()).find(query).sort({ createdAt: -1 }).toArray();
+    return res.json({ success: true, count: data.length, data });
+  } catch (error) {
+    console.error('Error consultando inscripciones:', error);
+    return res.status(503).json({ success: false, message: 'La base de datos no está disponible.' });
+  }
 });
 
-app.get('/api/registrations/:codeOrId', (req, res) => {
-  const param = req.params.codeOrId.toUpperCase().trim();
-  const found = registrations.find(r => 
-    r.code.toUpperCase() === param || 
-    r.id.toUpperCase() === param ||
-    r.leaderDoc.trim() === param ||
-    r.leaderEmail.toLowerCase() === param.toLowerCase()
-  );
-
-  if (!found) {
-    return res.status(404).json({ success: false, message: 'Registro no encontrado con el código o documento ingresado' });
+app.get('/api/registrations/:codeOrId', async (req, res) => {
+  try {
+    const found = await findRegistrationByCodeOrDocument(req.params.codeOrId);
+    if (!found) {
+      return res.status(404).json({ success: false, message: 'Registro no encontrado con el código o documento ingresado' });
+    }
+    return res.json({ success: true, data: found });
+  } catch (error) {
+    console.error('Error consultando inscripción:', error);
+    return res.status(503).json({ success: false, message: 'La base de datos no está disponible.' });
   }
-  return res.json({ success: true, data: found });
 });
 
-app.post('/api/registrations', (req, res) => {
+app.post('/api/registrations', async (req, res) => {
   try {
     const body = req.body;
-    if (!body.teamName || !body.leaderName || !body.leaderEmail || !body.category) {
+    if (!body || !body.teamName || !body.projectTitle || !body.institution || !body.leaderName || !body.leaderDoc || !body.leaderEmail || !body.leaderPhone || !body.category || !body.projectDescription) {
       return res.status(400).json({ success: false, message: 'Faltan campos obligatorios para el registro.' });
+    }
+
+    if (!['automatizacion', 'seguidores', 'educativos'].includes(body.category)) {
+      return res.status(400).json({ success: false, message: 'La categoría de inscripción no es válida.' });
+    }
+
+    const institutionCategoryCount = await countInstitutionCategoryRegistrations(body.institution, body.category);
+    if (institutionCategoryCount >= 2) {
+      return res.status(409).json({
+        success: false,
+        message: 'Esta institución ya tiene el máximo de dos proyectos inscritos en esta categoría.'
+      });
+    }
+
+    const requestedMembers = Array.isArray(body.members) ? body.members : [];
+    if (requestedMembers.length > 1) {
+      return res.status(400).json({ success: false, message: 'Una inscripción permite máximo dos estudiantes y un profesor.' });
+    }
+    if (requestedMembers.some((member: { fullName?: string; documentId?: string }) => !member.fullName || !member.documentId)) {
+      return res.status(400).json({ success: false, message: 'Cada estudiante debe tener nombre y documento.' });
+    }
+    if (Boolean(body.mentorName) !== Boolean(body.mentorDoc)) {
+      return res.status(400).json({ success: false, message: 'El profesor o tutor debe registrarse con nombre y documento.' });
+    }
+
+    const members = [
+      { id: `member-${randomUUID()}`, fullName: body.leaderName, documentId: body.leaderDoc, role: 'Líder / Capitán' as const, email: body.leaderEmail, phone: body.leaderPhone },
+      ...requestedMembers.map((member: { fullName: string; documentId: string }) => ({
+        id: `member-${randomUUID()}`,
+        fullName: member.fullName,
+        documentId: member.documentId,
+        role: 'Integrante' as const
+      }))
+    ];
+    const participantDocuments = [body.leaderDoc, ...requestedMembers.map((member: { documentId: string }) => member.documentId), body.mentorDoc].filter(Boolean);
+    if (new Set(participantDocuments).size !== participantDocuments.length) {
+      return res.status(400).json({ success: false, message: 'Los documentos de los participantes deben ser diferentes.' });
+    }
+    if (await hasDuplicateParticipantDocuments(participantDocuments)) {
+      return res.status(409).json({ success: false, message: 'Uno de los documentos ya pertenece a otra inscripción.' });
     }
 
     const randomNum = Math.floor(1000 + Math.random() * 9000);
     const catCode = body.category === 'seguidores' ? 'S' : body.category === 'educativos' ? 'E' : 'A';
-    const code = `NOBSA-ROB-2026-${catCode}${randomNum}`;
+    const code = `NOBSA-ROB-2026-${catCode}${randomNum}-${Date.now().toString(36).slice(-4).toUpperCase()}`;
 
-    const newReg: RegistrationItem = {
-      id: `reg-${Date.now()}`,
+    const newReg: Registration = {
+      id: `reg-${randomUUID()}`,
       code,
       createdAt: new Date().toISOString(),
       category: body.category,
@@ -230,44 +277,46 @@ app.post('/api/registrations', (req, res) => {
       leaderPhone: body.leaderPhone || '',
       mentorName: body.mentorName || '',
       mentorDoc: body.mentorDoc || '',
-      members: body.members || [
-        { id: 'm-leader', fullName: body.leaderName, documentId: body.leaderDoc, role: 'Líder / Capitán', email: body.leaderEmail, phone: body.leaderPhone }
-      ],
+      members,
       projectDescription: body.projectDescription || '',
       technicalSpecs: body.technicalSpecs || '',
       spaceRequirements: body.spaceRequirements || '',
       status: 'Confirmado'
     };
 
-    registrations.unshift(newReg);
+    await (await registrationsCollection()).insertOne(newReg);
     return res.status(201).json({ success: true, message: 'Inscripción registrada con éxito', data: newReg });
-  } catch {
+  } catch (error) {
+    console.error('Error guardando inscripción:', error);
+    if (error instanceof Error && error.message.includes('duplicate key')) {
+      return res.status(409).json({ success: false, message: 'El código de inscripción ya existe, intenta de nuevo.' });
+    }
     return res.status(500).json({ success: false, message: 'Error en el servidor procesando la inscripción' });
   }
 });
 
-app.put('/api/registrations/:id/status', (req, res) => {
+app.put('/api/registrations/:id/status', async (req, res) => {
   const { id } = req.params;
-  const { status } = req.body;
-  const item = registrations.find(r => r.id === id || r.code === id);
-  if (!item) {
-    return res.status(404).json({ success: false, message: 'Inscripción no encontrada' });
+  const status = req.body.status as RegistrationStatus;
+  if (!['Confirmado', 'En revisión', 'Aprobado', 'Pendiente'].includes(status)) {
+    return res.status(400).json({ success: false, message: 'Estado de inscripción no válido.' });
   }
-  item.status = status;
+  const item = await updateRegistrationStatus(id, status);
+  if (!item) return res.status(404).json({ success: false, message: 'Inscripción no encontrada' });
   return res.json({ success: true, message: 'Estado actualizado correctamente', data: item });
 });
 
-app.delete('/api/registrations/:id', (req, res) => {
+app.delete('/api/registrations/:id', async (req, res) => {
   const { id } = req.params;
-  const initialLength = registrations.length;
-  registrations = registrations.filter(r => r.id !== id && r.code !== id);
-  if (registrations.length === initialLength) {
+  const result = await (await registrationsCollection()).deleteOne({ $or: [{ id }, { code: id }] });
+  if (result.deletedCount === 0) {
     return res.status(404).json({ success: false, message: 'Inscripción no encontrada' });
   }
   return res.json({ success: true, message: 'Inscripción eliminada correctamente' });
 });
 
-app.get('/api/stats', (_req, res) => {
+app.get('/api/stats', async (_req, res) => {
+  const registrations = await (await registrationsCollection()).find().toArray();
   const totalTeams = registrations.length;
   let totalParticipants = 0;
   const municipalities = new Set<string>();

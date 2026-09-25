@@ -11,6 +11,40 @@ import { Registration, RegistrationStatus } from '../../models/registration.mode
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <section id="admin" class="py-20 relative bg-[#05060a] border-t border-[#00f3ff]/20">
+      @if (!isAuthenticated()) {
+          <div class="max-w-md mx-auto bg-[#11141d] border-2 border-[#00f3ff]/40 p-6 sm:p-8">
+            <div class="text-center mb-6">
+              <div class="inline-flex items-center justify-center w-14 h-14 border border-[#00f3ff]/40 bg-[#00f3ff]/10 text-[#00f3ff] mb-4">
+                <mat-icon>lock</mat-icon>
+              </div>
+              <h2 class="text-2xl font-black text-white uppercase tracking-tight">Acceso administrativo</h2>
+              <p class="text-xs text-gray-400 font-mono mt-2 uppercase">Ingresa la contraseña para consultar los proyectos inscritos.</p>
+            </div>
+
+            <form (ngSubmit)="authenticate()" class="space-y-4">
+              <div>
+                <label for="adminPassword" class="block text-xs font-mono font-bold text-gray-300 mb-2 uppercase">Contraseña</label>
+                <input
+                  id="adminPassword"
+                  name="adminPassword"
+                  type="password"
+                  [(ngModel)]="password"
+                  autocomplete="current-password"
+                  class="w-full px-4 py-3 bg-[#05060a] border border-[#00f3ff]/30 text-white focus:outline-none focus:border-[#00f3ff] text-sm font-mono"
+                  placeholder="Ingresa la contraseña" />
+              </div>
+
+              @if (authenticationError()) {
+                <p class="text-xs text-rose-400 font-mono">Contraseña incorrecta.</p>
+              }
+
+              <button type="submit" class="cyber-button-primary w-full py-3 text-xs flex items-center justify-center gap-2">
+                <mat-icon class="text-sm">login</mat-icon>
+                <span>INGRESAR AL PANEL</span>
+              </button>
+            </form>
+          </div>
+      } @else {
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         <!-- Header -->
@@ -254,10 +288,12 @@ import { Registration, RegistrationStatus } from '../../models/registration.mode
         }
 
       </div>
+      }
     </section>
   `
 })
 export class AdminPanelComponent {
+  private readonly testPassword = 'T1cN0b54';
   regService = inject(RegistrationService);
 
   registrations = this.regService.registrations;
@@ -265,19 +301,36 @@ export class AdminPanelComponent {
 
   searchFilter = '';
   categoryFilter = 'all';
+  password = '';
+  isAuthenticated = signal(false);
+  authenticationError = signal(false);
   selectedDetail = signal<Registration | null>(null);
 
+  authenticate(): void {
+    this.isAuthenticated.set(this.password === this.testPassword);
+    this.authenticationError.set(!this.isAuthenticated());
+    if (this.isAuthenticated()) {
+      this.password = '';
+      this.regService.loadRegistrations(this.categoryFilter, this.searchFilter).subscribe();
+      this.regService.loadStats().subscribe();
+    }
+  }
+
   onFilterChange(): void {
-    this.regService.loadRegistrations(this.categoryFilter, this.searchFilter);
+    this.regService.loadRegistrations(this.categoryFilter, this.searchFilter).subscribe();
   }
 
   updateStatus(id: string, status: RegistrationStatus): void {
-    this.regService.updateStatus(id, status).subscribe();
+    this.regService.updateStatus(id, status).subscribe({
+      error: error => console.error('Error actualizando estado:', error)
+    });
   }
 
   deleteItem(id: string): void {
     if (confirm('¿Estás seguro de eliminar este registro de inscripción?')) {
-      this.regService.deleteRegistration(id).subscribe();
+      this.regService.deleteRegistration(id).subscribe({
+        error: error => console.error('Error eliminando inscripción:', error)
+      });
     }
   }
 
