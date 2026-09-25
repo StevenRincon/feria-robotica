@@ -104,9 +104,10 @@ api.post('/api/registrations', async (req, res) => {
             { id: `member-${randomUUID()}`, fullName: body.leaderName, documentId: body.leaderDoc, role: 'Líder / Capitán' as const, email: body.leaderEmail, phone: body.leaderPhone },
             ...requestedMembers.map((member: { fullName: string; documentId: string }) => ({ id: `member-${randomUUID()}`, fullName: member.fullName, documentId: member.documentId, role: 'Integrante' as const }))
         ];
-        const documents = [body.leaderDoc, ...requestedMembers.map((member: { documentId: string }) => member.documentId), body.mentorDoc].filter(Boolean);
-        if (new Set(documents).size !== documents.length) return res.status(400).json({ success: false, message: 'Los documentos de los participantes deben ser diferentes.' });
-        if (await hasDuplicateParticipantDocuments(documents)) return res.status(409).json({ success: false, message: 'Uno de los documentos ya pertenece a otra inscripción.' });
+        const participantDocuments = [body.leaderDoc, ...requestedMembers.map((member: { documentId: string }) => member.documentId)].filter(Boolean);
+        const allDocuments = [...participantDocuments, body.mentorDoc].filter(Boolean);
+        if (new Set(allDocuments).size !== allDocuments.length) return res.status(400).json({ success: false, message: 'Los documentos de los participantes deben ser diferentes.' });
+        if (await hasDuplicateParticipantDocuments(participantDocuments)) return res.status(409).json({ success: false, message: 'Uno de los documentos ya pertenece a otra inscripción.' });
 
         const categoryCode = body.category === 'seguidores' ? 'S' : body.category === 'educativos' ? 'E' : 'A';
         const registration: Registration = {

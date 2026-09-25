@@ -285,8 +285,9 @@ app.post('/api/registrations', async (req, res) => {
         role: 'Integrante' as const
       }))
     ];
-    const participantDocuments = [body.leaderDoc, ...requestedMembers.map((member: { documentId: string }) => member.documentId), body.mentorDoc].filter(Boolean);
-    if (new Set(participantDocuments).size !== participantDocuments.length) {
+    const participantDocuments = [body.leaderDoc, ...requestedMembers.map((member: { documentId: string }) => member.documentId)].filter(Boolean);
+    const allDocuments = [...participantDocuments, body.mentorDoc].filter(Boolean);
+    if (new Set(allDocuments).size !== allDocuments.length) {
       return res.status(400).json({ success: false, message: 'Los documentos de los participantes deben ser diferentes.' });
     }
     if (await hasDuplicateParticipantDocuments(participantDocuments)) {
