@@ -6,7 +6,7 @@ export interface TeamMember {
   id: string;
   fullName: string;
   documentId: string;
-  role: 'Líder / Capitán' | 'Integrante' | 'Tutor / Asesor';
+  role: 'Líder / Capitán' | 'Integrante' | 'Docente / Profesor';
   email?: string;
   phone?: string;
 }

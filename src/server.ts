@@ -47,7 +47,7 @@ interface RegistrationItem {
     id: string;
     fullName: string;
     documentId: string;
-    role: 'Líder / Capitán' | 'Integrante' | 'Tutor / Asesor';
+    role: 'Líder / Capitán' | 'Integrante' | 'Docente / Profesor';
     email?: string;
     phone?: string;
   }[];
@@ -211,8 +211,19 @@ app.get('/api/registrations/:codeOrId', async (req, res) => {
 app.post('/api/registrations', async (req, res) => {
   try {
     const body = req.body;
-    if (!body || !body.teamName || !body.projectTitle || !body.institution || !body.leaderName || !body.leaderDoc || !body.leaderEmail || !body.leaderPhone || !body.category || !body.projectDescription) {
+    if (!body || !body.teamName || !body.projectTitle || !body.institution || !body.leaderName || !body.leaderDoc || !body.leaderEmail || !body.leaderPhone || !body.mentorName || !body.mentorDoc || !body.category || !body.projectDescription) {
       return res.status(400).json({ success: false, message: 'Faltan campos obligatorios para el registro.' });
+    }
+
+    const emailPattern = /^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$/;
+    if (!/^\d+$/.test(String(body.leaderDoc)) || !/^\d+$/.test(String(body.mentorDoc))) {
+      return res.status(400).json({ success: false, message: 'Los documentos deben contener únicamente números.' });
+    }
+    if (!/^\d{10}$/.test(String(body.leaderPhone))) {
+      return res.status(400).json({ success: false, message: 'El celular debe contener exactamente 10 dígitos.' });
+    }
+    if (!emailPattern.test(String(body.leaderEmail))) {
+      return res.status(400).json({ success: false, message: 'El correo electrónico no tiene un formato válido.' });
     }
 
     if (!['automatizacion', 'seguidores', 'educativos'].includes(body.category)) {
@@ -231,11 +242,8 @@ app.post('/api/registrations', async (req, res) => {
     if (requestedMembers.length > 1) {
       return res.status(400).json({ success: false, message: 'Una inscripción permite máximo dos estudiantes y un profesor.' });
     }
-    if (requestedMembers.some((member: { fullName?: string; documentId?: string }) => !member.fullName || !member.documentId)) {
+    if (requestedMembers.some((member: { fullName?: string; documentId?: string }) => !member.fullName || !member.documentId || !/^\d+$/.test(String(member.documentId)))) {
       return res.status(400).json({ success: false, message: 'Cada estudiante debe tener nombre y documento.' });
-    }
-    if (Boolean(body.mentorName) !== Boolean(body.mentorDoc)) {
-      return res.status(400).json({ success: false, message: 'El profesor o tutor debe registrarse con nombre y documento.' });
     }
 
     const members = [

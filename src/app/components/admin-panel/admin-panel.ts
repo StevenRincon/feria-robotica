@@ -86,7 +86,7 @@ import { Registration, RegistrationStatus } from '../../models/registration.mode
           <div class="p-5 bg-[#11141d] border border-[#00f3ff]/30">
             <div class="text-xs font-mono font-bold text-gray-400 uppercase">Total Participantes</div>
             <div class="font-mono font-black text-4xl text-emerald-400 mt-2">{{ stats()?.totalParticipants || 0 }}</div>
-            <div class="text-[10px] font-mono text-gray-500 mt-1 uppercase">Estudiantes y tutores</div>
+            <div class="text-[10px] font-mono text-gray-500 mt-1 uppercase">Estudiantes y docentes</div>
           </div>
 
           <div class="p-5 bg-[#11141d] border border-[#00f3ff]/30">

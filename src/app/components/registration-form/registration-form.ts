@@ -294,10 +294,11 @@ import { CategoryId, Registration } from '../../models/registration.model';
                         id="leaderDoc"
                         type="text" 
                         formControlName="leaderDoc" 
+                        inputmode="numeric"
                         placeholder="C.C. O T.I. NÚMERO"
                         class="w-full px-4 py-3 bg-[#05060a] border border-[#00f3ff]/30 text-white placeholder-gray-600 focus:outline-none focus:border-[#00f3ff] text-xs font-mono" />
                       @if (f['leaderDoc'].touched && f['leaderDoc'].invalid) {
-                        <p class="text-xs text-rose-400 mt-1 font-mono">Número de documento requerido.</p>
+                        <p class="text-xs text-rose-400 mt-1 font-mono">Ingresa un documento numérico.</p>
                       }
                     </div>
                   </div>
@@ -312,7 +313,7 @@ import { CategoryId, Registration } from '../../models/registration.model';
                         placeholder="CORREO@EJEMPLO.COM"
                         class="w-full px-4 py-3 bg-[#05060a] border border-[#00f3ff]/30 text-white placeholder-gray-600 focus:outline-none focus:border-[#00f3ff] text-xs font-mono" />
                       @if (f['leaderEmail'].touched && f['leaderEmail'].invalid) {
-                        <p class="text-xs text-rose-400 mt-1 font-mono">Ingresa un correo electrónico válido.</p>
+                        <p class="text-xs text-rose-400 mt-1 font-mono">Ingresa un correo válido con formato usuario&#64;dominio.com.</p>
                       }
                     </div>
 
@@ -322,19 +323,31 @@ import { CategoryId, Registration } from '../../models/registration.model';
                         id="leaderPhone"
                         type="tel" 
                         formControlName="leaderPhone" 
+                        inputmode="numeric"
+                        maxlength="10"
                         placeholder="EJ. 3101234567"
                         class="w-full px-4 py-3 bg-[#05060a] border border-[#00f3ff]/30 text-white placeholder-gray-600 focus:outline-none focus:border-[#00f3ff] text-xs font-mono" />
                       @if (f['leaderPhone'].touched && f['leaderPhone'].invalid) {
-                        <p class="text-xs text-rose-400 mt-1 font-mono">Teléfono requerido.</p>
+                        <p class="text-xs text-rose-400 mt-1 font-mono">El celular debe tener exactamente 10 dígitos.</p>
                       }
                     </div>
                   </div>
 
                   <div class="pt-4 border-t border-[#00f3ff]/20">
-                    <h4 class="text-xs font-mono font-bold text-gray-300 uppercase tracking-wider mb-4">PROFESOR / TUTOR (OPCIONAL)</h4>
+                    <h4 class="text-xs font-mono font-bold text-gray-300 uppercase tracking-wider mb-4">DOCENTE / PROFESOR <span class="text-[#00f3ff]">*</span></h4>
                     <div class="grid sm:grid-cols-2 gap-4">
-                      <input type="text" formControlName="mentorName" placeholder="Nombre completo del profesor o tutor" class="w-full px-4 py-3 bg-[#05060a] border border-[#00f3ff]/30 text-white placeholder-gray-600 text-xs font-mono" />
-                      <input type="text" formControlName="mentorDoc" placeholder="Documento del profesor o tutor" class="w-full px-4 py-3 bg-[#05060a] border border-[#00f3ff]/30 text-white placeholder-gray-600 text-xs font-mono" />
+                      <div>
+                        <input type="text" formControlName="mentorName" placeholder="Nombre completo del docente o profesor" class="w-full px-4 py-3 bg-[#05060a] border border-[#00f3ff]/30 text-white placeholder-gray-600 text-xs font-mono" />
+                        @if (f['mentorName'].touched && f['mentorName'].invalid) {
+                          <p class="text-xs text-rose-400 mt-1 font-mono">El nombre del docente es obligatorio.</p>
+                        }
+                      </div>
+                      <div>
+                        <input type="text" inputmode="numeric" formControlName="mentorDoc" placeholder="Documento del docente o profesor" class="w-full px-4 py-3 bg-[#05060a] border border-[#00f3ff]/30 text-white placeholder-gray-600 text-xs font-mono" />
+                        @if (f['mentorDoc'].touched && f['mentorDoc'].invalid) {
+                          <p class="text-xs text-rose-400 mt-1 font-mono">El documento debe ser numérico.</p>
+                        }
+                      </div>
                     </div>
                   </div>
 
@@ -364,7 +377,8 @@ import { CategoryId, Registration } from '../../models/registration.model';
                             <input 
                               type="text" 
                               formControlName="documentId" 
-                              placeholder="Documento"
+                              inputmode="numeric"
+                              placeholder="Documento numérico"
                               class="px-3 py-2 bg-[#11141d] border border-[#00f3ff]/30 text-white text-xs font-mono" />
                           </div>
 
@@ -507,11 +521,11 @@ export class RegistrationFormComponent {
     city: ['Nobsa', Validators.required],
     department: ['Boyacá'],
     leaderName: ['', Validators.required],
-    leaderDoc: ['', Validators.required],
-    leaderEmail: ['', [Validators.required, Validators.email]],
-    leaderPhone: ['', Validators.required],
-    mentorName: [''],
-    mentorDoc: [''],
+    leaderDoc: ['', [Validators.required, Validators.pattern(/^\d+$/)]],
+    leaderEmail: ['', [Validators.required, Validators.pattern(/^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$/)]],
+    leaderPhone: ['', [Validators.required, Validators.pattern(/^\d{10}$/)]],
+    mentorName: ['', Validators.required],
+    mentorDoc: ['', [Validators.required, Validators.pattern(/^\d+$/)]],
     members: this.fb.array([]),
     projectDescription: ['', [Validators.required, Validators.minLength(15)]],
     technicalSpecs: [''],
@@ -540,7 +554,7 @@ export class RegistrationFormComponent {
     this.membersArray.push(
       this.fb.group({
         fullName: ['', Validators.required],
-        documentId: ['', Validators.required],
+        documentId: ['', [Validators.required, Validators.pattern(/^\d+$/)]],
         role: ['Integrante']
       })
     );
@@ -560,11 +574,13 @@ export class RegistrationFormComponent {
       }
     }
     if (step === 3) {
-      if (this.f['leaderName'].invalid || this.f['leaderDoc'].invalid || this.f['leaderEmail'].invalid || this.f['leaderPhone'].invalid) {
+      if (this.f['leaderName'].invalid || this.f['leaderDoc'].invalid || this.f['leaderEmail'].invalid || this.f['leaderPhone'].invalid || this.f['mentorName'].invalid || this.f['mentorDoc'].invalid) {
         this.f['leaderName'].markAsTouched();
         this.f['leaderDoc'].markAsTouched();
         this.f['leaderEmail'].markAsTouched();
         this.f['leaderPhone'].markAsTouched();
+        this.f['mentorName'].markAsTouched();
+        this.f['mentorDoc'].markAsTouched();
         return;
       }
     }

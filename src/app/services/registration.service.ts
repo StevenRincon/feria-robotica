@@ -33,7 +33,7 @@ export class RegistrationService {
       fullDesc: 'Categoría dirigida a estudiantes de bachillerato que presenten proyectos funcionales de automatización electrónica o robótica, con una solución clara y demostrable.',
       icon: 'settings_suggest',
       badgeColor: 'from-cyan-500 to-blue-600',
-      rulesUrl: 'https://drive.google.com/drive/folders/REGLAMENTO-AUTOMATIZACION',
+      rulesUrl: 'https://drive.google.com/file/d/1uaH3uHD7JACTWoe92Q0LhFLWD-bPPStu/view?usp=sharing',
       rulesHighlights: [
         'Participación para estudiantes de bachillerato.',
         'El proyecto debe ser funcional y demostrable.',
@@ -53,7 +53,7 @@ export class RegistrationService {
       fullDesc: 'Competencia para robots seguidores de línea. Consulta el reglamento anexo para conocer las características de la pista y las condiciones de participación.',
       icon: 'alt_route',
       badgeColor: 'from-amber-400 to-orange-500',
-      rulesUrl: 'https://drive.google.com/drive/folders/REGLAMENTO-SEGUIDORES-DE-LINEA',
+      rulesUrl: 'https://drive.google.com/file/d/1HUENKtHlQCZwDXKBrvjvA-Ko0jyXRHq9/view?usp=sharing',
       rulesHighlights: [
         'Robot autónomo para seguir una línea.',
         'La competencia se realizará en la pista oficial.',
@@ -73,7 +73,7 @@ export class RegistrationService {
       fullDesc: 'Categoría para proyectos de automatización, electrónica o robótica dirigidos a estudiantes de primaria, con una propuesta clara, creativa y demostrable.',
       icon: 'school',
       badgeColor: 'from-emerald-400 to-teal-600',
-      rulesUrl: 'https://drive.google.com/drive/folders/REGLAMENTO-PRIMARIA',
+      rulesUrl: 'https://drive.google.com/file/d/1szGb3hhYkVfYdFAts_XL0_24Np4Vcood/view?usp=sharing',
       rulesHighlights: [
         'Participación para estudiantes de primaria.',
         'El proyecto debe relacionarse con automatización, electrónica o robótica.',
