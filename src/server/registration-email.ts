@@ -44,12 +44,13 @@ export async function sendRegistrationConfirmation(registration: Registration): 
         '',
         ...fields.map(([label, value]) => `${label}: ${value}`),
         '',
-        'Conserva este correo y tu código de inscripción para futuras consultas.'
+        'Conserva este correo y tu código de inscripción para futuras consultas.',
+        'Si no encuentras este mensaje en tu bandeja de entrada, revisa la carpeta de spam o correo no deseado.'
     ].join('\n');
     const rows = fields.map(([label, value]) =>
         `<tr><th style="padding:8px;text-align:left;border-bottom:1px solid #dbe4ea">${escapeHtml(label)}</th><td style="padding:8px;border-bottom:1px solid #dbe4ea">${escapeHtml(value)}</td></tr>`
     ).join('');
-    const html = `<div style="font-family:Arial,sans-serif;color:#17212b;max-width:680px;margin:auto"><h1 style="color:#087e8b">Inscripción confirmada</h1><p>Hola ${escapeHtml(registration.leaderName)}, tu inscripción a la Feria de Robótica Nobsa 2026 fue registrada correctamente.</p><table style="border-collapse:collapse;width:100%">${rows}</table><p>Conserva este correo y tu código de inscripción para futuras consultas.</p></div>`;
+    const html = `<div style="font-family:Arial,sans-serif;color:#17212b;max-width:680px;margin:auto"><h1 style="color:#087e8b">Inscripción confirmada</h1><p>Hola ${escapeHtml(registration.leaderName)}, tu inscripción a la Feria de Robótica Nobsa 2026 fue registrada correctamente.</p><table style="border-collapse:collapse;width:100%">${rows}</table><p>Conserva este correo y tu código de inscripción para futuras consultas.</p><p>Si no encuentras este mensaje en tu bandeja de entrada, revisa la carpeta de spam o correo no deseado.</p></div>`;
 
     try {
         const transporter = nodemailer.createTransport({
