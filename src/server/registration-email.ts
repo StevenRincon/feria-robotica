@@ -1,4 +1,5 @@
 import type { Registration } from '../app/models/registration.model';
+import nodemailer from 'nodemailer';
 
 function escapeHtml(value: string): string {
     return value.replace(/[&<>"']/g, character => ({
@@ -11,10 +12,10 @@ function escapeHtml(value: string): string {
 }
 
 export async function sendRegistrationConfirmation(registration: Registration): Promise<boolean> {
-    const apiKey = process.env['RESEND_API_KEY'];
-    const from = process.env['RESEND_FROM_EMAIL'];
-    if (!apiKey || !from) {
-        console.warn('Correo de confirmación omitido: configura RESEND_API_KEY y RESEND_FROM_EMAIL.');
+    const user = process.env['GMAIL_USER'];
+    const appPassword = process.env['GMAIL_APP_PASSWORD']?.replace(/\s/g, '');
+    if (!user || !appPassword) {
+        console.warn('Correo de confirmación omitido: configura GMAIL_USER y GMAIL_APP_PASSWORD.');
         return false;
     }
 
@@ -51,26 +52,21 @@ export async function sendRegistrationConfirmation(registration: Registration): 
     const html = `<div style="font-family:Arial,sans-serif;color:#17212b;max-width:680px;margin:auto"><h1 style="color:#087e8b">Inscripción confirmada</h1><p>Hola ${escapeHtml(registration.leaderName)}, tu inscripción a la Feria de Robótica Nobsa 2026 fue registrada correctamente.</p><table style="border-collapse:collapse;width:100%">${rows}</table><p>Conserva este correo y tu código de inscripción para futuras consultas.</p></div>`;
 
     try {
-        const response = await fetch('https://api.resend.com/emails', {
-            method: 'POST',
-            headers: {
-                Authorization: `Bearer ${apiKey}`,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                from,
-                to: [registration.leaderEmail],
-                subject: `Inscripción confirmada: ${registration.code}`,
-                text,
-                html
-            }),
-            signal: AbortSignal.timeout(10_000)
+        const transporter = nodemailer.createTransport({
+            service: 'gmail',
+            auth: { user, pass: appPassword }
+        });
+        const result = await transporter.sendMail({
+            from: { name: 'Feria de Robótica Nobsa', address: user },
+            to: registration.leaderEmail,
+            subject: `Inscripción confirmada: ${registration.code}`,
+            text,
+            html
         });
 
-        if (!response.ok) console.error(`Resend rechazó el correo de confirmación (${response.status}).`);
-        return response.ok;
+        return result.accepted.length > 0;
     } catch (error) {
-        console.error('No fue posible enviar el correo de confirmación:', error);
+        console.error('No fue posible enviar el correo por Gmail SMTP:', error instanceof Error ? error.message : error);
         return false;
     }
 }

@@ -36,11 +36,11 @@ Configura estas variables en `.env` o en el entorno de ejecución:
 ```env
 MONGODB_URI=mongodb://127.0.0.1:27017
 MONGODB_DB=feria_robotica_nobsa
-RESEND_API_KEY=re_your_api_key
-RESEND_FROM_EMAIL="Feria de Robótica Nobsa <inscripciones@tu-dominio.com>"
+GMAIL_USER=tu_correo@gmail.com
+GMAIL_APP_PASSWORD=abcdefghijklmnop
 ```
 
-El correo de confirmación se envía al líder después de guardar la inscripción. Configura `RESEND_API_KEY` y un remitente verificado en `RESEND_FROM_EMAIL` desde Resend y el entorno de ejecución. Si el envío falla, la inscripción permanece guardada y la confirmación en pantalla lo indicará.
+El correo de confirmación se envía al líder después de guardar la inscripción. Configura `GMAIL_USER` y una contraseña de aplicación de Google en `GMAIL_APP_PASSWORD` como secretos del entorno. Si el envío falla, la inscripción permanece guardada y la confirmación en pantalla lo indicará.
 
 No uses credenciales que hayan sido compartidas en chats, commits o capturas. Rota inmediatamente la contraseña del usuario en MongoDB Atlas y configura la nueva cadena de conexión como secreto del entorno. En PowerShell, para una sesión local:
 
