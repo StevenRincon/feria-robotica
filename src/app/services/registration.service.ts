@@ -23,6 +23,7 @@ export class RegistrationService {
   activeCategoryFilter = signal<CategoryId | 'all'>('all');
   selectedCategoryForForm = signal<CategoryId>('automatizacion');
   currentRegistrationResult = signal<Registration | null>(null);
+  confirmationEmailSent = signal<boolean | null>(null);
 
   // Categories static data
   readonly categories: CategoryInfo[] = [
@@ -193,8 +194,12 @@ export class RegistrationService {
 
   createRegistration(data: Partial<Registration>): Observable<Registration> {
     this.loading.set(true);
-    return this.http.post<{ success: boolean; data: Registration }>('/api/registrations', data).pipe(
-      map(res => res.data),
+    this.confirmationEmailSent.set(null);
+    return this.http.post<{ success: boolean; data: Registration; emailSent?: boolean }>('/api/registrations', data).pipe(
+      map(res => {
+        this.confirmationEmailSent.set(res.emailSent ?? false);
+        return res.data;
+      }),
       tap(newReg => {
         this.currentRegistrationResult.set(newReg);
         this.loadRegistrations();

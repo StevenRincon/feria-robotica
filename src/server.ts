@@ -17,6 +17,7 @@ import {
 } from './server/database';
 import type { Registration, RegistrationStatus } from './app/models/registration.model';
 import { createParticipationCertificate } from './server/certificate';
+import { sendRegistrationConfirmation } from './server/registration-email';
 
 const browserDistFolder = join(import.meta.dirname, '../browser');
 
@@ -342,7 +343,8 @@ app.post('/api/registrations', async (req, res) => {
     };
 
     await (await registrationsCollection()).insertOne(newReg);
-    return res.status(201).json({ success: true, message: 'Inscripción registrada con éxito', data: newReg });
+    const emailSent = await sendRegistrationConfirmation(newReg);
+    return res.status(201).json({ success: true, message: 'Inscripción registrada con éxito', emailSent, data: newReg });
   } catch (error) {
     console.error('Error guardando inscripción:', error);
     if (error instanceof Error && error.message.includes('duplicate key')) {

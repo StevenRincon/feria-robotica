@@ -40,6 +40,11 @@ import { CategoryId, Registration } from '../../models/registration.model';
                 <div>
                   <h3 class="font-black text-xl text-white uppercase tracking-wider">¡INSCRIPCIÓN EXITOSA!</h3>
                   <p class="text-xs font-mono text-emerald-400 font-bold uppercase">Acreditación Oficial Generada</p>
+                  @if (regService.confirmationEmailSent()) {
+                    <p class="mt-2 text-xs font-mono text-emerald-300">Confirmación enviada a {{ createdRegistration()?.leaderEmail }}</p>
+                  } @else {
+                    <p class="mt-2 text-xs font-mono text-amber-300">La inscripción quedó guardada, pero no fue posible enviar el correo de confirmación.</p>
+                  }
                 </div>
               </div>
 

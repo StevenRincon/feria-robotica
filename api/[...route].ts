@@ -2,6 +2,7 @@ import express from 'express';
 import { randomUUID } from 'node:crypto';
 import type { Registration, RegistrationStatus } from '../src/app/models/registration.model';
 import { createParticipationCertificate } from '../src/server/certificate.js';
+import { sendRegistrationConfirmation } from '../src/server/registration-email.js';
 import {
     countInstitutionCategoryRegistrations,
     findRegistrationByCodeOrDocument,
@@ -136,7 +137,8 @@ api.post('/api/registrations', async (req, res) => {
         };
 
         await (await registrationsCollection()).insertOne(registration);
-        return res.status(201).json({ success: true, message: 'Inscripción registrada con éxito', data: registration });
+        const emailSent = await sendRegistrationConfirmation(registration);
+        return res.status(201).json({ success: true, message: 'Inscripción registrada con éxito', emailSent, data: registration });
     } catch (error) {
         console.error('Error guardando inscripción:', error);
         if (error instanceof Error && error.message.includes('duplicate key')) return res.status(409).json({ success: false, message: 'El código de inscripción ya existe, intenta de nuevo.' });
