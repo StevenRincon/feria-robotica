@@ -197,7 +197,13 @@ export class RegistrationService {
     this.confirmationEmailSent.set(null);
     return this.http.post<{ success: boolean; data: Registration; emailSent?: boolean }>('/api/registrations', data).pipe(
       map(res => {
-        this.confirmationEmailSent.set(res.emailSent ?? false);
+        const emailSent = res.emailSent === true;
+        this.confirmationEmailSent.set(emailSent);
+        if (emailSent) {
+          console.info('Correo de confirmación enviado correctamente.', { code: res.data.code });
+        } else {
+          console.warn('La inscripción se guardó, pero el correo de confirmación no se envió. Revisa la configuración y los logs del servidor.', { code: res.data.code });
+        }
         return res.data;
       }),
       tap(newReg => {
@@ -208,6 +214,7 @@ export class RegistrationService {
       }),
       catchError(err => {
         this.loading.set(false);
+        console.error('No fue posible completar la solicitud de inscripción.', err);
         throw err;
       })
     );
