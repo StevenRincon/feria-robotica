@@ -19,7 +19,8 @@ export interface Registration {
   categoryName: string;
   teamName: string;
   projectTitle: string;
-  institution: string;
+  institutionNit?: string;
+  institution?: string;
   institutionType: 'Colegio / I.E.' | 'Universidad / SENA' | 'Club / Independiente' | 'Empresa / StartUp';
   city: string;
   department: string;

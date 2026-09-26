@@ -112,7 +112,7 @@ import { Registration, RegistrationStatus } from '../../models/registration.mode
                 type="text" 
                 [(ngModel)]="searchFilter" 
                 (ngModelChange)="onFilterChange()"
-                placeholder="BUSCAR PROYECTO, COLEGIO, DOCENTE O DOCUMENTO..."
+                placeholder="BUSCAR PROYECTO, NIT, DOCENTE O DOCUMENTO..."
                 class="w-full pl-10 pr-4 py-2.5 bg-[#05060a] border border-[#00f3ff]/30 text-white text-xs font-mono uppercase placeholder-gray-600 focus:outline-none focus:border-[#00f3ff]" />
             </div>
 
@@ -140,7 +140,7 @@ import { Registration, RegistrationStatus } from '../../models/registration.mode
                   <th class="p-4">Código / Fecha</th>
                   <th class="p-4">Equipo / Proyecto</th>
                   <th class="p-4">Categoría</th>
-                  <th class="p-4">Institución & Ciudad</th>
+                  <th class="p-4">NIT & Ciudad</th>
                   <th class="p-4">Docente a cargo</th>
                   <th class="p-4">Estado</th>
                   <th class="p-4 text-right">Acciones</th>
@@ -167,7 +167,7 @@ import { Registration, RegistrationStatus } from '../../models/registration.mode
                     </td>
 
                     <td class="p-4">
-                      <div class="font-bold text-gray-200 uppercase">{{ item.institution }}</div>
+                      <div class="font-bold text-gray-200 uppercase">NIT: {{ item.institutionNit || 'No registrado' }}</div>
                       <div class="text-[11px] text-gray-400 uppercase">{{ item.city }}, {{ item.department }}</div>
                     </td>
 
@@ -251,7 +251,7 @@ import { Registration, RegistrationStatus } from '../../models/registration.mode
               <div class="space-y-3 text-xs font-mono text-gray-300">
                 <div><strong class="text-white uppercase">Proyecto:</strong> {{ selectedDetail()?.projectTitle }}</div>
                 <div><strong class="text-white uppercase">Categoría:</strong> {{ selectedDetail()?.categoryName }}</div>
-                <div><strong class="text-white uppercase">Institución:</strong> {{ selectedDetail()?.institution }} ({{ selectedDetail()?.institutionType }})</div>
+                <div><strong class="text-white uppercase">NIT de la institución:</strong> {{ selectedDetail()?.institutionNit || 'No registrado' }} ({{ selectedDetail()?.institutionType }})</div>
                 <div><strong class="text-white uppercase">Ubicación:</strong> {{ selectedDetail()?.city }}, {{ selectedDetail()?.department }}</div>
                 
                 <div class="pt-3 border-t border-[#00f3ff]/20">

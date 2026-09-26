@@ -67,7 +67,7 @@ import { CategoryId, Registration } from '../../models/registration.model';
 
                   <div class="space-y-1 text-xs text-gray-300 pt-3 border-t border-[#00f3ff]/20 font-mono">
                     <div><strong class="text-white uppercase">Categoría:</strong> {{ createdRegistration()?.categoryName }}</div>
-                    <div><strong class="text-white uppercase">Institución:</strong> {{ createdRegistration()?.institution }}</div>
+                    <div><strong class="text-white uppercase">NIT de la institución:</strong> {{ createdRegistration()?.institutionNit || 'No registrado' }}</div>
                     <div><strong class="text-white uppercase">Líder:</strong> {{ createdRegistration()?.leaderName }} (DOC: {{ createdRegistration()?.leaderDoc }})</div>
                     <div><strong class="text-white uppercase">Ubicación:</strong> {{ createdRegistration()?.city }}, {{ createdRegistration()?.department }}</div>
                   </div>
@@ -235,15 +235,16 @@ import { CategoryId, Registration } from '../../models/registration.model';
                     </div>
 
                     <div>
-                      <label for="institution" class="block text-xs font-mono font-bold text-gray-300 mb-1 uppercase">INSTITUCIÓN <span class="text-[#00f3ff]">*</span></label>
+                      <label for="institutionNit" class="block text-xs font-mono font-bold text-gray-300 mb-1 uppercase">NIT DE LA INSTITUCIÓN <span class="text-[#00f3ff]">*</span></label>
                       <input 
-                        id="institution"
+                        id="institutionNit"
                         type="text" 
-                        formControlName="institution" 
-                        placeholder="EJ. I.E. TÉCNICO INDUSTRIAL DE NOBSA"
+                        inputmode="numeric"
+                        formControlName="institutionNit"
+                        placeholder="EJ. 900123456-7"
                         class="w-full px-4 py-3 bg-[#05060a] border border-[#00f3ff]/30 text-white placeholder-gray-600 focus:outline-none focus:border-[#00f3ff] text-xs font-mono" />
-                      @if (f['institution'].touched && f['institution'].invalid) {
-                        <p class="text-xs text-rose-400 mt-1 font-mono">Nombre de institución requerido.</p>
+                      @if (f['institutionNit'].touched && f['institutionNit'].invalid) {
+                        <p class="text-xs text-rose-400 mt-1 font-mono">Ingresa un NIT válido de 9 o 10 dígitos.</p>
                       }
                     </div>
 
@@ -522,7 +523,7 @@ export class RegistrationFormComponent {
     teamName: ['', [Validators.required, Validators.minLength(3)]],
     projectTitle: ['', Validators.required],
     institutionType: ['Colegio / I.E.', Validators.required],
-    institution: ['', Validators.required],
+    institutionNit: ['', [Validators.required, Validators.pattern(/^(?:\d{9,10}|\d{9}-\d|\d{3}(?:\.\d{3}){2}(?:-\d)?)$/)]],
     city: ['Nobsa', Validators.required],
     department: ['Boyacá'],
     leaderName: ['', Validators.required],
@@ -571,10 +572,10 @@ export class RegistrationFormComponent {
 
   goToStep(step: number): void {
     if (step === 2) {
-      if (this.f['teamName'].invalid || this.f['projectTitle'].invalid || this.f['institution'].invalid) {
+      if (this.f['teamName'].invalid || this.f['projectTitle'].invalid || this.f['institutionNit'].invalid) {
         this.f['teamName'].markAsTouched();
         this.f['projectTitle'].markAsTouched();
-        this.f['institution'].markAsTouched();
+        this.f['institutionNit'].markAsTouched();
         return;
       }
     }

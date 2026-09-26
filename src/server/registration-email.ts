@@ -25,7 +25,7 @@ export async function sendRegistrationConfirmation(registration: Registration): 
         ['Categoría', registration.categoryName],
         ['Equipo', registration.teamName],
         ['Proyecto', registration.projectTitle],
-        ['Institución', registration.institution],
+        ['NIT de la institución', registration.institutionNit || 'No registrado'],
         ['Ubicación', `${registration.city}, ${registration.department}`],
         ['Líder', registration.leaderName],
         ['Documento del líder', registration.leaderDoc],

@@ -18,6 +18,7 @@ import {
 import type { Registration, RegistrationStatus } from './app/models/registration.model';
 import { createParticipationCertificate } from './server/certificate';
 import { sendRegistrationConfirmation } from './server/registration-email';
+import { normalizeInstitutionNit } from './server/institution-nit';
 
 const browserDistFolder = join(import.meta.dirname, '../browser');
 
@@ -36,6 +37,7 @@ interface RegistrationItem {
   teamName: string;
   projectTitle: string;
   institution: string;
+  institutionNit?: string;
   institutionType: 'Colegio / I.E.' | 'Universidad / SENA' | 'Club / Independiente' | 'Empresa / StartUp';
   city: string;
   department: string;
@@ -186,18 +188,22 @@ app.get('/api/registrations', async (req, res) => {
   if (search) {
     const escapedSearch = search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     filters.push({
-      $or: ['teamName', 'projectTitle', 'institution', 'city', 'code', 'leaderName', 'leaderDoc', 'mentorName', 'mentorDoc']
+      $or: ['teamName', 'projectTitle', 'institutionNit', 'institution', 'city', 'code', 'leaderName', 'leaderDoc', 'mentorName', 'mentorDoc']
         .map(field => ({ [field]: { $regex: escapedSearch, $options: 'i' } }))
     });
   }
   const project = String(req.query['project'] || '').trim();
   const teacher = String(req.query['teacher'] || '').trim();
   const teacherDoc = String(req.query['teacherDoc'] || '').trim();
-  const institution = String(req.query['institution'] || '').trim();
+  const institutionNitInput = String(req.query['institutionNit'] || req.query['institution'] || '').trim();
   if (project) filters.push({ $or: ['projectTitle', 'teamName'].map(field => ({ [field]: { $regex: project.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), $options: 'i' } })) });
   if (teacher) filters.push({ mentorName: { $regex: teacher.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), $options: 'i' } });
   if (teacherDoc) filters.push({ mentorDoc: { $regex: teacherDoc.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), $options: 'i' } });
-  if (institution) filters.push({ institution: { $regex: institution.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), $options: 'i' } });
+  if (institutionNitInput) {
+    const institutionNit = normalizeInstitutionNit(institutionNitInput);
+    if (!institutionNit) return res.status(400).json({ success: false, message: 'El NIT debe tener 9 o 10 dígitos y un formato válido.' });
+    filters.push({ institutionNit });
+  }
   if (filters.length) query['$and'] = filters;
 
   try {
@@ -260,9 +266,11 @@ app.get('/api/certificates', async (req, res) => {
 app.post('/api/registrations', async (req, res) => {
   try {
     const body = req.body;
-    if (!body || !body.teamName || !body.projectTitle || !body.institution || !body.leaderName || !body.leaderDoc || !body.leaderEmail || !body.leaderPhone || !body.mentorName || !body.mentorDoc || !body.category || !body.projectDescription) {
+    if (!body || !body.teamName || !body.projectTitle || !body.institutionNit || !body.leaderName || !body.leaderDoc || !body.leaderEmail || !body.leaderPhone || !body.mentorName || !body.mentorDoc || !body.category || !body.projectDescription) {
       return res.status(400).json({ success: false, message: 'Faltan campos obligatorios para el registro.' });
     }
+    const institutionNit = normalizeInstitutionNit(body.institutionNit);
+    if (!institutionNit) return res.status(400).json({ success: false, message: 'El NIT debe tener 9 o 10 dígitos y un formato válido.' });
 
     const emailPattern = /^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$/;
     if (!/^\d+$/.test(String(body.leaderDoc)) || !/^\d+$/.test(String(body.mentorDoc))) {
@@ -279,7 +287,7 @@ app.post('/api/registrations', async (req, res) => {
       return res.status(400).json({ success: false, message: 'La categoría de inscripción no es válida.' });
     }
 
-    const institutionCategoryCount = await countInstitutionCategoryRegistrations(body.institution, body.category);
+    const institutionCategoryCount = await countInstitutionCategoryRegistrations(institutionNit, body.category);
     if (institutionCategoryCount >= 2) {
       return res.status(409).json({
         success: false,
@@ -325,7 +333,7 @@ app.post('/api/registrations', async (req, res) => {
       categoryName: getCategoryName(body.category),
       teamName: body.teamName,
       projectTitle: body.projectTitle || 'Proyecto de Robótica',
-      institution: body.institution || 'Independiente',
+      institutionNit,
       institutionType: body.institutionType || 'Colegio / I.E.',
       city: body.city || 'Nobsa',
       department: body.department || 'Boyacá',

@@ -27,9 +27,11 @@ La colección `registrations` se crea automáticamente al iniciar el servidor co
 
 - Un máximo de dos estudiantes en `members` (el líder y un integrante adicional).
 - Un profesor o tutor opcional en `mentorName` y `mentorDoc`.
-- Un máximo de dos proyectos por institución dentro de cada categoría.
+- Un máximo de dos proyectos por NIT dentro de cada categoría.
 - Validación de documentos repetidos entre estudiantes, profesor e inscripciones existentes.
 - Índices únicos para `code` y de consulta para documentos, categoría, estado y ciudad.
+
+El formulario acepta NIT de 9 o 10 dígitos, con o sin puntos y guion, y lo guarda normalizado solo con dígitos. Al iniciar con una colección existente, el servidor actualiza su validador de MongoDB para aceptar tanto los registros históricos como los nuevos; el usuario de MongoDB debe tener permiso para ejecutar `collMod`. Las inscripciones antiguas no incluyen NIT y se mostrarán como “No registrado”.
 
 Configura estas variables en `.env` o en el entorno de ejecución:
 

@@ -3,6 +3,7 @@ import { randomUUID } from 'node:crypto';
 import type { Registration, RegistrationStatus } from '../src/app/models/registration.model';
 import { createParticipationCertificate } from '../src/server/certificate.js';
 import { sendRegistrationConfirmation } from '../src/server/registration-email.js';
+import { normalizeInstitutionNit } from '../src/server/institution-nit.js';
 import {
     countInstitutionCategoryRegistrations,
     findRegistrationByCodeOrDocument,
@@ -30,18 +31,22 @@ api.get('/api/registrations', async (req, res) => {
         if (search) {
             const escapedSearch = search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
             filters.push({
-                $or: ['teamName', 'projectTitle', 'institution', 'city', 'code', 'leaderName', 'leaderDoc', 'mentorName', 'mentorDoc']
+                $or: ['teamName', 'projectTitle', 'institutionNit', 'institution', 'city', 'code', 'leaderName', 'leaderDoc', 'mentorName', 'mentorDoc']
                     .map(field => ({ [field]: { $regex: escapedSearch, $options: 'i' } }))
             });
         }
         const project = String(req.query['project'] || '').trim();
         const teacher = String(req.query['teacher'] || '').trim();
         const teacherDoc = String(req.query['teacherDoc'] || '').trim();
-        const institution = String(req.query['institution'] || '').trim();
+        const institutionNitInput = String(req.query['institutionNit'] || req.query['institution'] || '').trim();
         if (project) filters.push({ $or: ['projectTitle', 'teamName'].map(field => ({ [field]: { $regex: project.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), $options: 'i' } })) });
         if (teacher) filters.push({ mentorName: { $regex: teacher.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), $options: 'i' } });
         if (teacherDoc) filters.push({ mentorDoc: { $regex: teacherDoc.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), $options: 'i' } });
-        if (institution) filters.push({ institution: { $regex: institution.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), $options: 'i' } });
+        if (institutionNitInput) {
+            const institutionNit = normalizeInstitutionNit(institutionNitInput);
+            if (!institutionNit) return res.status(400).json({ success: false, message: 'El NIT debe tener 9 o 10 dígitos y un formato válido.' });
+            filters.push({ institutionNit });
+        }
         if (filters.length) query['$and'] = filters;
         const data = await (await registrationsCollection()).find(query).sort({ createdAt: -1 }).toArray();
         return res.json({ success: true, count: data.length, data });
@@ -82,13 +87,15 @@ api.get('/api/certificates/:id', async (req, res) => {
 api.post('/api/registrations', async (req, res) => {
     try {
         const body = req.body;
-        if (!body || !body.teamName || !body.projectTitle || !body.institution || !body.leaderName || !body.leaderDoc || !body.leaderEmail || !body.leaderPhone || !body.category || !body.projectDescription) {
+        if (!body || !body.teamName || !body.projectTitle || !body.institutionNit || !body.leaderName || !body.leaderDoc || !body.leaderEmail || !body.leaderPhone || !body.category || !body.projectDescription) {
             return res.status(400).json({ success: false, message: 'Faltan campos obligatorios para el registro.' });
         }
+        const institutionNit = normalizeInstitutionNit(body.institutionNit);
+        if (!institutionNit) return res.status(400).json({ success: false, message: 'El NIT debe tener 9 o 10 dígitos y un formato válido.' });
         if (!['automatizacion', 'seguidores', 'educativos'].includes(body.category)) {
             return res.status(400).json({ success: false, message: 'La categoría de inscripción no es válida.' });
         }
-        if (await countInstitutionCategoryRegistrations(body.institution, body.category) >= 2) {
+        if (await countInstitutionCategoryRegistrations(institutionNit, body.category) >= 2) {
             return res.status(409).json({ success: false, message: 'Esta institución ya tiene el máximo de dos proyectos inscritos en esta categoría.' });
         }
 
@@ -119,7 +126,7 @@ api.post('/api/registrations', async (req, res) => {
             categoryName: getCategoryName(body.category),
             teamName: body.teamName,
             projectTitle: body.projectTitle,
-            institution: body.institution,
+            institutionNit,
             institutionType: body.institutionType || 'Colegio / I.E.',
             city: body.city || 'Nobsa',
             department: body.department || 'Boyacá',

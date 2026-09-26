@@ -244,7 +244,7 @@ export class RegistrationService {
     return this.http.get(`/api/certificates?registrationId=${encodeURIComponent(id)}`, { responseType: 'blob' });
   }
 
-  searchCertificates(filters: { project?: string; teacher?: string; teacherDoc?: string; institution?: string; category?: string }): Observable<Registration[]> {
+  searchCertificates(filters: { project?: string; teacher?: string; teacherDoc?: string; institutionNit?: string; category?: string }): Observable<Registration[]> {
     const params = new URLSearchParams();
     Object.entries(filters).forEach(([key, value]) => {
       if (value?.trim() && value !== 'all') params.set(key, value.trim());
@@ -264,7 +264,7 @@ export class RegistrationService {
       'Categoría',
       'Nombre Equipo',
       'Proyecto',
-      'Institución',
+      'NIT Institución',
       'Tipo Institución',
       'Municipio',
       'Líder',
@@ -280,7 +280,7 @@ export class RegistrationService {
       `"${r.categoryName}"`,
       `"${r.teamName}"`,
       `"${r.projectTitle.replace(/"/g, '""')}"`,
-      `"${r.institution.replace(/"/g, '""')}"`,
+      `"${(r.institutionNit || r.institution || 'NIT no registrado').replace(/"/g, '""')}"`,
       `"${r.institutionType}"`,
       `"${r.city}"`,
       `"${r.leaderName}"`,

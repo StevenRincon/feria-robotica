@@ -22,7 +22,7 @@ const registrationValidator = {
     bsonType: 'object',
     required: [
       'id', 'code', 'createdAt', 'category', 'categoryName', 'teamName',
-      'projectTitle', 'institution', 'institutionType', 'city', 'department',
+      'projectTitle', 'institutionType', 'city', 'department',
       'leaderName', 'leaderDoc', 'leaderEmail', 'leaderPhone', 'members',
       'projectDescription', 'status'
     ],
@@ -34,6 +34,7 @@ const registrationValidator = {
       categoryName: { bsonType: 'string' },
       teamName: { bsonType: 'string', minLength: 3 },
       projectTitle: { bsonType: 'string' },
+      institutionNit: { bsonType: 'string', pattern: '^[0-9]{9,10}$' },
       institution: { bsonType: 'string' },
       institutionType: { enum: ['Colegio / I.E.', 'Universidad / SENA', 'Club / Independiente', 'Empresa / StartUp'] },
       city: { bsonType: 'string' },
@@ -65,7 +66,11 @@ const registrationValidator = {
       technicalSpecs: { bsonType: 'string' },
       spaceRequirements: { bsonType: 'string' },
       status: { enum: ['Confirmado', 'En revisión', 'Aprobado', 'Pendiente'] }
-    }
+    },
+    anyOf: [
+      { required: ['institutionNit'] },
+      { required: ['institution'] }
+    ]
   }
 };
 
@@ -90,6 +95,13 @@ async function getDatabase(): Promise<Db> {
           throw error;
         }
       }
+
+      await db.command({
+        collMod: collectionName,
+        validator: registrationValidator,
+        validationLevel: 'strict',
+        validationAction: 'error'
+      });
 
       const registrations = db.collection<Registration>(collectionName);
       await Promise.all([
@@ -140,11 +152,11 @@ export async function hasDuplicateParticipantDocuments(documents: string[], exce
   return (await registrations.countDocuments(query, { limit: 1 })) > 0;
 }
 
-export async function countInstitutionCategoryRegistrations(institution: string, category: Registration['category']): Promise<number> {
+export async function countInstitutionCategoryRegistrations(institutionNit: string, category: Registration['category']): Promise<number> {
   const registrations = await registrationsCollection();
-  const escapedInstitution = institution.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const escapedInstitutionNit = institutionNit.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   return registrations.countDocuments({
-    institution: { $regex: `^${escapedInstitution}$`, $options: 'i' },
+    institutionNit: { $regex: `^${escapedInstitutionNit}$` },
     category
   });
 }

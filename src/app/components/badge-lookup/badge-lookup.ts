@@ -6,10 +6,10 @@ import { RegistrationService } from '../../services/registration.service';
 import { Registration } from '../../models/registration.model';
 
 @Component({
-    selector: 'app-badge-lookup',
-    imports: [CommonModule, FormsModule, MatIconModule],
-    changeDetection: ChangeDetectionStrategy.OnPush,
-    template: `
+  selector: 'app-badge-lookup',
+  imports: [CommonModule, FormsModule, MatIconModule],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  template: `
     <section id="acreditacion" class="py-20 relative bg-[#05060a] border-t border-[#00f3ff]/20">
       <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="text-center max-w-2xl mx-auto mb-10 space-y-3">
@@ -20,7 +20,7 @@ import { Registration } from '../../models/registration.model';
             BUSCA TU <span class="text-[#00f3ff]">CERTIFICADO</span>
           </h2>
           <p class="text-gray-300 text-xs sm:text-sm font-sans">
-            Consulta por proyecto, docente, documento o institución. Al encontrarlo podrás descargar el certificado en PDF.
+            Consulta por proyecto, docente, documento o NIT de la institución. Al encontrarlo podrás descargar el certificado en PDF.
           </p>
         </div>
 
@@ -32,7 +32,7 @@ import { Registration } from '../../models/registration.model';
               class="w-full px-4 py-3 bg-[#05060a] border border-[#00f3ff]/30 text-white placeholder-gray-600 focus:outline-none focus:border-[#00f3ff] text-xs font-mono uppercase" />
             <input type="text" [(ngModel)]="teacherDocQuery" placeholder="DOCUMENTO DEL DOCENTE"
               class="w-full px-4 py-3 bg-[#05060a] border border-[#00f3ff]/30 text-white placeholder-gray-600 focus:outline-none focus:border-[#00f3ff] text-xs font-mono uppercase" />
-            <input type="text" [(ngModel)]="institutionQuery" placeholder="COLEGIO O INSTITUCIÓN"
+            <input type="text" [(ngModel)]="institutionQuery" placeholder="NIT DE LA INSTITUCIÓN"
               class="w-full px-4 py-3 bg-[#05060a] border border-[#00f3ff]/30 text-white placeholder-gray-600 focus:outline-none focus:border-[#00f3ff] text-xs font-mono uppercase" />
             <select [(ngModel)]="categoryQuery" class="w-full px-4 py-3 bg-[#05060a] border border-[#00f3ff]/30 text-white focus:outline-none focus:border-[#00f3ff] text-xs font-mono uppercase">
               <option value="all">TODAS LAS CATEGORÍAS</option>
@@ -69,7 +69,7 @@ import { Registration } from '../../models/registration.model';
                       <div class="grid sm:grid-cols-2 gap-x-8 gap-y-1 pt-3 border-t border-[#00f3ff]/20 text-xs text-gray-300 font-mono">
                         <span><strong class="text-white">DOCENTE:</strong> {{ item.mentorName || 'No registrado' }}</span>
                         <span><strong class="text-white">DOCUMENTO:</strong> {{ item.mentorDoc || 'No registrado' }}</span>
-                        <span><strong class="text-white">INSTITUCIÓN:</strong> {{ item.institution }}</span>
+                        <span><strong class="text-white">NIT INSTITUCIÓN:</strong> {{ item.institutionNit || 'No registrado' }}</span>
                         <span><strong class="text-white">FECHA:</strong> {{ item.createdAt | date:'longDate' }}</span>
                       </div>
                     </div>
@@ -90,61 +90,61 @@ import { Registration } from '../../models/registration.model';
   `
 })
 export class BadgeLookupComponent {
-    private readonly regService = inject(RegistrationService);
+  private readonly regService = inject(RegistrationService);
 
-    projectQuery = '';
-    teacherQuery = '';
-    teacherDocQuery = '';
-    institutionQuery = '';
-    categoryQuery = 'all';
-    loading = signal(false);
-    errorMessage = signal('');
-    searchPerformed = signal(false);
-    certificateResults = signal<Registration[]>([]);
+  projectQuery = '';
+  teacherQuery = '';
+  teacherDocQuery = '';
+  institutionQuery = '';
+  categoryQuery = 'all';
+  loading = signal(false);
+  errorMessage = signal('');
+  searchPerformed = signal(false);
+  certificateResults = signal<Registration[]>([]);
 
-    hasSearchCriteria(): boolean {
-        return Boolean(this.projectQuery.trim() || this.teacherQuery.trim() || this.teacherDocQuery.trim() || this.institutionQuery.trim() || this.categoryQuery !== 'all');
-    }
+  hasSearchCriteria(): boolean {
+    return Boolean(this.projectQuery.trim() || this.teacherQuery.trim() || this.teacherDocQuery.trim() || this.institutionQuery.trim() || this.categoryQuery !== 'all');
+  }
 
-    searchCertificates(): void {
-        if (!this.hasSearchCriteria()) return;
-        this.loading.set(true);
-        this.errorMessage.set('');
-        this.regService.searchCertificates({
-            project: this.projectQuery,
-            teacher: this.teacherQuery,
-            teacherDoc: this.teacherDocQuery,
-            institution: this.institutionQuery,
-            category: this.categoryQuery
-        }).subscribe({
-            next: registrations => {
-                this.loading.set(false);
-                this.searchPerformed.set(true);
-                this.certificateResults.set(registrations);
-            },
-            error: () => {
-                this.loading.set(false);
-                this.searchPerformed.set(true);
-                this.certificateResults.set([]);
-                this.errorMessage.set('No fue posible consultar los certificados en este momento.');
-            }
-        });
-    }
+  searchCertificates(): void {
+    if (!this.hasSearchCriteria()) return;
+    this.loading.set(true);
+    this.errorMessage.set('');
+    this.regService.searchCertificates({
+      project: this.projectQuery,
+      teacher: this.teacherQuery,
+      teacherDoc: this.teacherDocQuery,
+      institutionNit: this.institutionQuery,
+      category: this.categoryQuery
+    }).subscribe({
+      next: registrations => {
+        this.loading.set(false);
+        this.searchPerformed.set(true);
+        this.certificateResults.set(registrations);
+      },
+      error: () => {
+        this.loading.set(false);
+        this.searchPerformed.set(true);
+        this.certificateResults.set([]);
+        this.errorMessage.set('No fue posible consultar los certificados en este momento.');
+      }
+    });
+  }
 
-    downloadCertificate(item: Registration): void {
-        this.regService.downloadCertificate(item.id).subscribe({
-            next: blob => {
-                const url = URL.createObjectURL(blob);
-                const link = document.createElement('a');
-                link.href = url;
-                link.download = `Certificado_${item.projectTitle.replace(/[^a-z0-9]+/gi, '_').replace(/^_|_$/g, '')}.pdf`;
-                link.style.display = 'none';
-                document.body.appendChild(link);
-                link.click();
-                link.remove();
-                window.setTimeout(() => URL.revokeObjectURL(url), 1000);
-            },
-            error: () => this.errorMessage.set('No fue posible generar el certificado.')
-        });
-    }
+  downloadCertificate(item: Registration): void {
+    this.regService.downloadCertificate(item.id).subscribe({
+      next: blob => {
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `Certificado_${item.projectTitle.replace(/[^a-z0-9]+/gi, '_').replace(/^_|_$/g, '')}.pdf`;
+        link.style.display = 'none';
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+      },
+      error: () => this.errorMessage.set('No fue posible generar el certificado.')
+    });
+  }
 }
