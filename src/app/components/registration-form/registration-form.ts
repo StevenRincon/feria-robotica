@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, ElementRef, ViewChild, inject, sign
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, Validators, FormArray } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
+import Swal from 'sweetalert2';
 import { RegistrationService } from '../../services/registration.service';
 import { CategoryId, Registration } from '../../models/registration.model';
 
@@ -603,14 +604,43 @@ export class RegistrationFormComponent {
     const formValue = this.regForm.value;
 
     this.regService.createRegistration(formValue as Partial<Registration>).subscribe({
-      next: () => {
+      next: registration => {
         this.isSubmitting.set(false);
+        const emailSent = this.regService.confirmationEmailSent();
+        void Swal.fire({
+          icon: emailSent ? 'success' : 'warning',
+          title: emailSent ? '¡Inscripción realizada!' : 'Inscripción guardada',
+          text: emailSent
+            ? `La confirmación fue enviada al correo ${registration.leaderEmail}.`
+            : 'La inscripción quedó guardada, pero no fue posible enviar el correo de confirmación.'
+        });
       },
       error: (err) => {
         console.error('Error creating registration:', err);
         this.isSubmitting.set(false);
+        const message = err.error?.message || 'No fue posible completar la inscripción.';
+        const projects = err.error?.projects as Array<{ teamName: string; projectTitle: string }> | undefined;
+        const projectList = projects?.length
+          ? `<ul>${projects.map(project => `<li><strong>${this.escapeHtml(project.teamName)}</strong>: ${this.escapeHtml(project.projectTitle)}</li>`).join('')}</ul>`
+          : '';
+
+        void Swal.fire({
+          icon: 'error',
+          title: projects?.length ? 'Cupo de categoría completo' : 'No se pudo completar la inscripción',
+          html: `${this.escapeHtml(message)}${projectList}`
+        });
       }
     });
+  }
+
+  private escapeHtml(value: string): string {
+    return value.replace(/[&<>"']/g, character => ({
+      '&': '&amp;',
+      '<': '&lt;',
+      '>': '&gt;',
+      '"': '&quot;',
+      "'": '&#39;'
+    })[character] ?? character);
   }
 
   printBadge(): void {

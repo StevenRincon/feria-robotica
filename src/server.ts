@@ -10,6 +10,7 @@ import { randomUUID } from 'node:crypto';
 import { GoogleGenAI } from '@google/genai';
 import {
   countInstitutionCategoryRegistrations,
+  findInstitutionCategoryProjects,
   findRegistrationByCodeOrDocument,
   hasDuplicateParticipantDocuments,
   registrationsCollection,
@@ -289,9 +290,11 @@ app.post('/api/registrations', async (req, res) => {
 
     const institutionCategoryCount = await countInstitutionCategoryRegistrations(institutionNit, body.category);
     if (institutionCategoryCount >= 2) {
+      const projects = await findInstitutionCategoryProjects(institutionNit, body.category);
       return res.status(409).json({
         success: false,
-        message: 'Esta institución ya tiene el máximo de dos proyectos inscritos en esta categoría.'
+        message: 'Esta institución ya tiene el máximo de dos proyectos inscritos en esta categoría.',
+        projects
       });
     }
 

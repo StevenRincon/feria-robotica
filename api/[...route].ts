@@ -6,6 +6,7 @@ import { sendRegistrationConfirmation } from '../src/server/registration-email.j
 import { normalizeInstitutionNit } from '../src/server/institution-nit.js';
 import {
     countInstitutionCategoryRegistrations,
+    findInstitutionCategoryProjects,
     findRegistrationByCodeOrDocument,
     hasDuplicateParticipantDocuments,
     registrationsCollection,
@@ -96,7 +97,12 @@ api.post('/api/registrations', async (req, res) => {
             return res.status(400).json({ success: false, message: 'La categoría de inscripción no es válida.' });
         }
         if (await countInstitutionCategoryRegistrations(institutionNit, body.category) >= 2) {
-            return res.status(409).json({ success: false, message: 'Esta institución ya tiene el máximo de dos proyectos inscritos en esta categoría.' });
+            const projects = await findInstitutionCategoryProjects(institutionNit, body.category);
+            return res.status(409).json({
+                success: false,
+                message: 'Esta institución ya tiene el máximo de dos proyectos inscritos en esta categoría.',
+                projects
+            });
         }
 
         const requestedMembers = Array.isArray(body.members) ? body.members : [];

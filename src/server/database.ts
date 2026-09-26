@@ -161,6 +161,15 @@ export async function countInstitutionCategoryRegistrations(institutionNit: stri
   });
 }
 
+export async function findInstitutionCategoryProjects(institutionNit: string, category: Registration['category']): Promise<Array<Pick<Registration, 'teamName' | 'projectTitle'>>> {
+  const registrations = await registrationsCollection();
+  const escapedInstitutionNit = institutionNit.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  return registrations.find(
+    { institutionNit: { $regex: `^${escapedInstitutionNit}$` }, category },
+    { projection: { _id: 0, teamName: 1, projectTitle: 1 } }
+  ).toArray();
+}
+
 export async function updateRegistrationStatus(id: string, status: RegistrationStatus): Promise<Registration | null> {
   const registrations = await registrationsCollection();
   return registrations.findOneAndUpdate(
