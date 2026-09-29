@@ -143,31 +143,7 @@ interface TimeRemaining {
               </div>
 
               <!-- Live Registration Metrics Summary -->
-              <div class="mt-6 pt-6 border-t border-[#00f3ff]/20 space-y-3">
-                <div class="text-xs font-mono uppercase tracking-widest text-gray-400 flex items-center justify-between">
-                  <span>METRICAS_EN_VIVO</span>
-                  <span class="text-[#00f3ff] flex items-center gap-1">
-                    <mat-icon class="text-sm">sync</mat-icon> ONLINE
-                  </span>
-                </div>
-
-                <div class="grid grid-cols-3 gap-2 text-center">
-                  <div class="p-3 bg-[#11141d] border border-[#00f3ff]/20">
-                    <div class="font-black text-2xl text-white">{{ stats()?.totalTeams || 4 }}</div>
-                    <div class="text-[10px] font-mono text-gray-400 uppercase">Equipos</div>
-                  </div>
-
-                  <div class="p-3 bg-[#11141d] border border-[#00f3ff]/20">
-                    <div class="font-black text-2xl text-[#00f3ff]">{{ stats()?.totalParticipants || 11 }}</div>
-                    <div class="text-[10px] font-mono text-gray-400 uppercase">Robóticos</div>
-                  </div>
-
-                  <div class="p-3 bg-[#11141d] border border-[#00f3ff]/20">
-                    <div class="font-black text-2xl text-emerald-400">{{ stats()?.totalMunicipalities || 4 }}</div>
-                    <div class="text-[10px] font-mono text-gray-400 uppercase">Municipios</div>
-                  </div>
-                </div>
-              </div>
+            
 
               <!-- Location Banner -->
               <div class="mt-6 p-3 bg-[#11141d] border border-[#00f3ff]/30 flex items-center gap-3">
@@ -175,8 +151,8 @@ interface TimeRemaining {
                   <mat-icon class="text-lg">map</mat-icon>
                 </div>
                 <div class="text-xs">
-                  <div class="font-bold text-slate-100 uppercase font-mono">SEDE PRINCIPAL // NOBSA, BOYACÁ</div>
-                  <div class="text-gray-400 text-[11px]">Centro Cultural y Polideportivo Municipal</div>
+                  <div class="font-bold text-slate-100 uppercase font-mono">NAZARETH - NOBSA, BOYACÁ</div>
+                  <div class="text-gray-400 text-[11px]">Coliseo de Nazareth</div>
                 </div>
               </div>
 
