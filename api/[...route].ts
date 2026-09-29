@@ -4,6 +4,7 @@ import type { Registration, RegistrationStatus } from '../src/app/models/registr
 import { createParticipationCertificate } from '../src/server/certificate.js';
 import { sendRegistrationConfirmation } from '../src/server/registration-email.js';
 import { normalizeInstitutionNit } from '../src/server/institution-nit.js';
+import { areCertificatesAvailable, CERTIFICATE_AVAILABILITY_MESSAGE } from '../src/shared/certificate-availability.js';
 import {
     countInstitutionCategoryRegistrations,
     findInstitutionCategoryProjects,
@@ -69,6 +70,10 @@ api.get('/api/registrations/:codeOrId', async (req, res) => {
 });
 
 api.get('/api/certificates/:id', async (req, res) => {
+    if (!areCertificatesAvailable()) {
+        return res.status(423).json({ success: false, message: CERTIFICATE_AVAILABILITY_MESSAGE });
+    }
+
     try {
         const certificateId = decodeURIComponent(req.params.id).trim();
         const registration = await (await registrationsCollection()).findOne({ $or: [{ id: certificateId }, { code: certificateId }] });

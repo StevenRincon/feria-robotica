@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
 import { RegistrationService } from '../../services/registration.service';
 import { Registration, RegistrationStatus } from '../../models/registration.model';
+import { areCertificatesAvailable, CERTIFICATE_AVAILABILITY_MESSAGE } from '../../../shared/certificate-availability';
 
 @Component({
   selector: 'app-admin-panel',
@@ -203,10 +204,10 @@ import { Registration, RegistrationStatus } from '../../models/registration.mode
                         <button
                           (click)="downloadCertificate(item)"
                           type="button"
-                          title="Descargar certificado protegido"
-                          [disabled]="!item.mentorDoc"
+                          [title]="certificatesAvailable() ? 'Descargar certificado protegido' : certificateAvailabilityMessage"
+                          [disabled]="!certificatesAvailable() || !item.mentorDoc"
                           class="p-1.5 text-emerald-400 hover:bg-emerald-500/10 disabled:text-gray-600 disabled:cursor-not-allowed">
-                          <mat-icon class="text-base">picture_as_pdf</mat-icon>
+                          <mat-icon class="text-base">{{ certificatesAvailable() ? 'picture_as_pdf' : 'lock' }}</mat-icon>
                         </button>
 
                         <button 
@@ -305,6 +306,7 @@ export class AdminPanelComponent implements OnDestroy {
   private readonly sessionDurationMs = 3 * 60 * 1000;
   private sessionTimeoutId: ReturnType<typeof setTimeout> | null = null;
   regService = inject(RegistrationService);
+  readonly certificateAvailabilityMessage = CERTIFICATE_AVAILABILITY_MESSAGE;
 
   registrations = this.regService.registrations;
   stats = this.regService.stats;
@@ -373,7 +375,16 @@ export class AdminPanelComponent implements OnDestroy {
     this.regService.exportToJson(this.registrations());
   }
 
+  certificatesAvailable(): boolean {
+    return areCertificatesAvailable();
+  }
+
   downloadCertificate(item: Registration): void {
+    if (!this.certificatesAvailable()) {
+      alert(this.certificateAvailabilityMessage);
+      return;
+    }
+
     if (!item.mentorDoc) {
       alert('Este proyecto no tiene un docente a cargo con documento registrado.');
       return;

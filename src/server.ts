@@ -20,6 +20,7 @@ import type { Registration, RegistrationStatus } from './app/models/registration
 import { createParticipationCertificate } from './server/certificate';
 import { sendRegistrationConfirmation } from './server/registration-email';
 import { normalizeInstitutionNit } from './server/institution-nit';
+import { areCertificatesAvailable, CERTIFICATE_AVAILABILITY_MESSAGE } from './shared/certificate-availability';
 
 const browserDistFolder = join(import.meta.dirname, '../browser');
 
@@ -230,6 +231,10 @@ app.get('/api/registrations/:codeOrId', async (req, res) => {
 });
 
 app.get('/api/certificates/:id', async (req, res) => {
+  if (!areCertificatesAvailable()) {
+    return res.status(423).json({ success: false, message: CERTIFICATE_AVAILABILITY_MESSAGE });
+  }
+
   try {
     const certificateId = decodeURIComponent(req.params.id).trim();
     const registration = await (await registrationsCollection()).findOne({ $or: [{ id: certificateId }, { code: certificateId }] });
@@ -247,6 +252,10 @@ app.get('/api/certificates/:id', async (req, res) => {
 });
 
 app.get('/api/certificates', async (req, res) => {
+  if (!areCertificatesAvailable()) {
+    return res.status(423).json({ success: false, message: CERTIFICATE_AVAILABILITY_MESSAGE });
+  }
+
   try {
     const registrationId = String(req.query['registrationId'] || '').trim();
     if (!registrationId) return res.status(400).json({ success: false, message: 'Falta el identificador del proyecto.' });

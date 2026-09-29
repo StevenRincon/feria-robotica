@@ -1,10 +1,16 @@
 import type { Request, Response } from 'express';
 import { registrationsCollection } from '../src/server/database.js';
 import { createParticipationCertificate } from '../src/server/certificate.js';
+import { areCertificatesAvailable, CERTIFICATE_AVAILABILITY_MESSAGE } from '../src/shared/certificate-availability.js';
 
 export default async function handler(req: Request, res: Response): Promise<void> {
     if (req.method !== 'GET') {
         res.status(405).json({ success: false, message: 'Método no permitido.' });
+        return;
+    }
+
+    if (!areCertificatesAvailable()) {
+        res.status(423).json({ success: false, message: CERTIFICATE_AVAILABILITY_MESSAGE });
         return;
     }
 

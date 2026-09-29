@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
 import { RegistrationService } from '../../services/registration.service';
 import { Registration } from '../../models/registration.model';
+import { areCertificatesAvailable, CERTIFICATE_AVAILABILITY_MESSAGE } from '../../../shared/certificate-availability';
 
 @Component({
   selector: 'app-badge-lookup',
@@ -22,6 +23,12 @@ import { Registration } from '../../models/registration.model';
           <p class="text-gray-300 text-xs sm:text-sm font-sans">
             Consulta por proyecto, docente, documento o NIT de la institución. Al encontrarlo podrás descargar el certificado en PDF.
           </p>
+          @if (!certificatesAvailable()) {
+            <p class="inline-flex items-center justify-center gap-2 border border-amber-400/40 bg-amber-400/10 px-4 py-2 text-xs font-mono font-bold text-amber-300" role="status">
+              <mat-icon class="text-sm">lock</mat-icon>
+              <span>{{ certificateAvailabilityMessage }}</span>
+            </p>
+          }
         </div>
 
         <div class="bg-[#11141d] p-4 sm:p-6 border border-[#00f3ff]/30 mb-8">
@@ -40,7 +47,7 @@ import { Registration } from '../../models/registration.model';
               <option value="seguidores">SEGUIDORES DE LÍNEA</option>
               <option value="educativos">PROYECTOS PARA PRIMARIA</option>
             </select>
-            <button (click)="searchCertificates()" [disabled]="loading() || !hasSearchCriteria()" type="button"
+            <button (click)="searchCertificates()" [disabled]="!certificatesAvailable() || loading() || !hasSearchCriteria()" [title]="certificatesAvailable() ? 'Buscar certificados' : certificateAvailabilityMessage" type="button"
               class="cyber-button-primary px-6 py-3 text-xs flex items-center justify-center gap-2 disabled:opacity-40">
               @if (loading()) { <mat-icon class="animate-spin text-sm">sync</mat-icon> }
               @else { <mat-icon class="text-sm">search</mat-icon> }
@@ -73,9 +80,9 @@ import { Registration } from '../../models/registration.model';
                         <span><strong class="text-white">FECHA:</strong> {{ item.createdAt | date:'longDate' }}</span>
                       </div>
                     </div>
-                    <button (click)="downloadCertificate(item)" [disabled]="!item.mentorDoc" type="button"
+                    <button (click)="downloadCertificate(item)" [disabled]="!certificatesAvailable() || !item.mentorDoc" type="button"
                       class="cyber-button-primary px-5 py-3 text-xs flex items-center justify-center gap-2 shrink-0 disabled:opacity-40">
-                      <mat-icon class="text-sm">picture_as_pdf</mat-icon>
+                      <mat-icon class="text-sm">{{ certificatesAvailable() ? 'picture_as_pdf' : 'lock' }}</mat-icon>
                       <span>DESCARGAR PDF</span>
                     </button>
                   </div>
@@ -91,6 +98,7 @@ import { Registration } from '../../models/registration.model';
 })
 export class BadgeLookupComponent {
   private readonly regService = inject(RegistrationService);
+  readonly certificateAvailabilityMessage = CERTIFICATE_AVAILABILITY_MESSAGE;
 
   projectQuery = '';
   teacherQuery = '';
@@ -102,11 +110,19 @@ export class BadgeLookupComponent {
   searchPerformed = signal(false);
   certificateResults = signal<Registration[]>([]);
 
+  certificatesAvailable(): boolean {
+    return areCertificatesAvailable();
+  }
+
   hasSearchCriteria(): boolean {
     return Boolean(this.projectQuery.trim() || this.teacherQuery.trim() || this.teacherDocQuery.trim() || this.institutionQuery.trim() || this.categoryQuery !== 'all');
   }
 
   searchCertificates(): void {
+    if (!this.certificatesAvailable()) {
+      this.errorMessage.set(this.certificateAvailabilityMessage);
+      return;
+    }
     if (!this.hasSearchCriteria()) return;
     this.loading.set(true);
     this.errorMessage.set('');
@@ -132,6 +148,11 @@ export class BadgeLookupComponent {
   }
 
   downloadCertificate(item: Registration): void {
+    if (!this.certificatesAvailable()) {
+      this.errorMessage.set(this.certificateAvailabilityMessage);
+      return;
+    }
+
     this.regService.downloadCertificate(item.id).subscribe({
       next: blob => {
         const url = URL.createObjectURL(blob);

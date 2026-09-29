@@ -29,9 +29,11 @@ interface TimeRemaining {
           </div>
 
           <div class="flex flex-wrap items-center gap-3">
-            <span class="inline-flex items-center gap-1.5 px-3 py-1 font-mono text-[11px] font-bold uppercase tracking-wider bg-[#00f3ff]/10 text-[#00f3ff] border border-[#00f3ff]/30">
-              LOCALIZACIÓN // 5.7533° N, 72.9389° W
-            </span>
+            <a href="https://maps.app.goo.gl/2Y9QdwwJpaBWYT5T7" target="_blank" rel="noopener noreferrer" aria-label="Ver ubicación en Google Maps" title="Ver ubicación en Google Maps" class="group inline-flex items-center gap-1.5 px-3 py-1 font-mono text-[11px] font-bold uppercase tracking-wider bg-[#00f3ff]/10 text-[#00f3ff] border border-[#00f3ff]/30 transition-all duration-300 hover:-translate-y-0.5 hover:bg-[#00f3ff]/20 hover:border-[#00f3ff] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#00f3ff]">
+              <mat-icon class="text-sm animate-bounce motion-reduce:animate-none">location_on</mat-icon>
+              <span>VER UBICACIÓN </span>
+              <mat-icon class="text-xs transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5">open_in_new</mat-icon>
+            </a>
             <span class="inline-flex items-center gap-1.5 px-3 py-1 font-mono text-[11px] font-bold uppercase tracking-wider bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
               <mat-icon class="text-xs">verified</mat-icon> INSCRIPCIONES 100% GRATUITAS
             </span>
@@ -46,7 +48,7 @@ interface TimeRemaining {
             <h1 class="text-5xl sm:text-7xl lg:text-8xl font-black text-white tracking-tighter leading-none uppercase">
               FERIA <br />
               <span class="text-transparent stroke-cyan">ROBÓTICA</span>
-              <span class="block text-white text-3xl sm:text-5xl mt-2 tracking-tight">NOBSA 2026</span>
+              <span class="block text-white text-3xl sm:text-5xl mt-2 tracking-tight">2026</span>
             </h1>
 
             <p class="text-base sm:text-lg text-slate-300 max-w-2xl font-normal leading-relaxed">
@@ -67,7 +69,7 @@ interface TimeRemaining {
                 <mat-icon class="text-[#00f3ff]">location_on</mat-icon>
                 <div>
                   <div class="font-bold text-white text-sm">NOBSA, BOYACÁ</div>
-                  <div class="text-[#00f3ff]/70 text-[10px]">I.E. TÉCNICA DE NAZARETH</div>
+                  <div class="text-[#00f3ff]/70 text-[10px]">COLISEO DE NAZARETH</div>
                 </div>
               </div>
 
