@@ -28,31 +28,24 @@ import { MatIconModule } from '@angular/material/icon';
               Evento municipal de tecnología, automatización industrial y robótica educativa. Promoviendo la innovación científica y el desarrollo mecatrónico en Sugamuxi y Boyacá.
             </p>
 
-            <div class="flex items-center gap-3 pt-2 text-gray-300">
-              <span class="px-2.5 py-1 bg-[#11141d] border border-[#00f3ff]/30 font-mono text-[11px] font-bold">
-                NIT: 891.801.328-9
-              </span>
-              <span class="px-2.5 py-1 bg-[#11141d] border border-[#00f3ff]/30 font-mono text-[11px] font-bold">
-                COD. POSTAL: 152280
-              </span>
-            </div>
+           
           </div>
 
           <!-- Contact & Sede -->
           <div class="space-y-3">
-            <h4 class="font-bold text-white uppercase tracking-wider text-xs">CONTACTO & SEDE</h4>
+            <h4 class="font-bold text-white uppercase tracking-wider text-xs">CONTACTO</h4>
             <ul class="space-y-2.5 text-xs">
-              <li class="flex items-start gap-2">
-                <mat-icon class="text-[#00f3ff] text-sm mt-0.5">location_on</mat-icon>
-                <span>Centro Polideportivo Municipal, Calle 5 # 4-20, Nobsa, Boyacá</span>
-              </li>
               <li class="flex items-center gap-2">
                 <mat-icon class="text-[#00f3ff] text-sm">mail</mat-icon>
-                <span>robotica&#64;nobsa-boyaca.gov.co</span>
+                <a href="mailto:ticygobiernodigital@nobsa-boyaca.gov.co" class="hover:text-[#00f3ff] transition-colors">ticygobiernodigital&#64;nobsa-boyaca.gov.co</a>
               </li>
-              <li class="flex items-center gap-2">
+              <li class="flex items-start gap-2">
                 <mat-icon class="text-[#00f3ff] text-sm">phone</mat-icon>
-                <span>+57 (608) 770-1234 / 310 889 0123</span>
+                <div class="flex flex-col gap-1">
+                  <a href="tel:+573002906330" class="hover:text-[#00f3ff] transition-colors">3002906330</a>
+                  <a href="tel:+573167765610" class="hover:text-[#00f3ff] transition-colors">3167765610</a>
+                  <a href="tel:+573204197454" class="hover:text-[#00f3ff] transition-colors">3204197454</a>
+                </div>
               </li>
             </ul>
           </div>
@@ -86,4 +79,4 @@ import { MatIconModule } from '@angular/material/icon';
     </footer>
   `
 })
-export class FooterComponent {}
+export class FooterComponent { }
