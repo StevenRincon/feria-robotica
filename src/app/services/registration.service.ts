@@ -264,13 +264,13 @@ export class RegistrationService {
       'Categoría',
       'Nombre Equipo',
       'Proyecto',
-      'NIT Institución',
+      'Código DANE Institución',
       'Tipo Institución',
       'Municipio',
       'Líder',
       'Documento',
-      'Email',
-      'Teléfono',
+      'Correo docente',
+      'Contacto docente',
       'Estado'
     ];
 
@@ -280,13 +280,13 @@ export class RegistrationService {
       `"${r.categoryName}"`,
       `"${r.teamName}"`,
       `"${r.projectTitle.replace(/"/g, '""')}"`,
-      `"${(r.institutionNit || r.institution || 'NIT no registrado').replace(/"/g, '""')}"`,
+      `"${(r.institutionNit || r.institution || 'Código DANE no registrado').replace(/"/g, '""')}"`,
       `"${r.institutionType}"`,
       `"${r.city}"`,
       `"${r.leaderName}"`,
       `"${r.leaderDoc}"`,
-      `"${r.leaderEmail}"`,
-      `"${r.leaderPhone}"`,
+      `"${r.mentorEmail || ''}"`,
+      `"${r.mentorPhone || ''}"`,
       `"${r.status}"`
     ]);
 

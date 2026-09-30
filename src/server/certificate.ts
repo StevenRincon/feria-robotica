@@ -47,7 +47,7 @@ export function createParticipationCertificate(registration: Registration): Prom
 
         document.fillColor('#ffffff').font('Helvetica').fontSize(12)
             .text(`Docente a cargo: ${registration.mentorName || 'No registrado'}`, 60, 350, { align: 'center', width: width - 120 })
-            .text(`NIT institución: ${registration.institutionNit || 'No registrado'}`, 60, 373, { align: 'center', width: width - 120 })
+            .text(`Código DANE institución: ${registration.institutionNit || 'No registrado'}`, 60, 373, { align: 'center', width: width - 120 })
             .text(`Expedido el ${formatDate(registration.createdAt)}`, 60, 396, { align: 'center', width: width - 120 });
 
         document.moveTo(115, 478).lineTo(280, 478).lineWidth(0.7).stroke('#9eb4c2');

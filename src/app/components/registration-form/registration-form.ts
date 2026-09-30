@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, ElementRef, ViewChild, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ReactiveFormsModule, FormBuilder, Validators, FormArray } from '@angular/forms';
+import { ReactiveFormsModule, FormBuilder, Validators, FormArray, AbstractControl, ValidationErrors } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
 import Swal from 'sweetalert2';
 import { RegistrationService } from '../../services/registration.service';
@@ -42,7 +42,7 @@ import { CategoryId, Registration } from '../../models/registration.model';
                   <h3 class="font-black text-xl text-white uppercase tracking-wider">¡INSCRIPCIÓN EXITOSA!</h3>
                   <p class="text-xs font-mono text-emerald-400 font-bold uppercase">Acreditación Oficial Generada</p>
                   @if (regService.confirmationEmailSent()) {
-                    <p class="mt-2 text-xs font-mono text-emerald-300">Confirmación enviada a {{ createdRegistration()?.leaderEmail }}</p>
+                    <p class="mt-2 text-xs font-mono text-emerald-300">Confirmación enviada a {{ createdRegistration()?.mentorEmail }}</p>
                   } @else {
                     <p class="mt-2 text-xs font-mono text-amber-300">La inscripción quedó guardada, pero no fue posible enviar el correo de confirmación.</p>
                   }
@@ -68,7 +68,7 @@ import { CategoryId, Registration } from '../../models/registration.model';
 
                   <div class="space-y-1 text-xs text-gray-300 pt-3 border-t border-[#00f3ff]/20 font-mono">
                     <div><strong class="text-white uppercase">Categoría:</strong> {{ createdRegistration()?.categoryName }}</div>
-                    <div><strong class="text-white uppercase">NIT de la institución:</strong> {{ createdRegistration()?.institutionNit || 'No registrado' }}</div>
+                    <div><strong class="text-white uppercase">Código DANE:</strong> {{ createdRegistration()?.institutionNit || 'No registrado' }}</div>
                     <div><strong class="text-white uppercase">Líder:</strong> {{ createdRegistration()?.leaderName }} (DOC: {{ createdRegistration()?.leaderDoc }})</div>
                     <div><strong class="text-white uppercase">Ubicación:</strong> {{ createdRegistration()?.city }}, {{ createdRegistration()?.department }}</div>
                   </div>
@@ -229,23 +229,22 @@ import { CategoryId, Registration } from '../../models/registration.model';
                         formControlName="institutionType"
                         class="w-full px-4 py-3 bg-[#05060a] border border-[#00f3ff]/30 text-white focus:outline-none focus:border-[#00f3ff] text-xs font-mono">
                         <option value="Colegio / I.E.">Colegio / I.E.</option>
-                        <option value="Universidad / SENA">Universidad / SENA</option>
-                        <option value="Club / Independiente">Club de Robótica / Independiente</option>
-                        <option value="Empresa / StartUp">Empresa / StartUp</option>
                       </select>
                     </div>
 
                     <div>
-                      <label for="institutionNit" class="block text-xs font-mono font-bold text-gray-300 mb-1 uppercase">NIT DE LA INSTITUCIÓN <span class="text-[#00f3ff]">*</span></label>
+                      <label for="institutionNit" class="block text-xs font-mono font-bold text-gray-300 mb-1 uppercase">CÓDIGO DANE DE 12 DÍGITOS <span class="text-[#00f3ff]">*</span></label>
                       <input 
                         id="institutionNit"
                         type="text" 
                         inputmode="numeric"
                         formControlName="institutionNit"
-                        placeholder="EJ. 900123456-7"
+                        maxlength="12"
+                        placeholder="Solo números, 12 dígitos"
                         class="w-full px-4 py-3 bg-[#05060a] border border-[#00f3ff]/30 text-white placeholder-gray-600 focus:outline-none focus:border-[#00f3ff] text-xs font-mono" />
+                      <p class="text-xs text-amber-300 mt-1 font-mono">Escribe únicamente números, sin comas, puntos ni otros caracteres.</p>
                       @if (f['institutionNit'].touched && f['institutionNit'].invalid) {
-                        <p class="text-xs text-rose-400 mt-1 font-mono">Ingresa un NIT válido de 9 o 10 dígitos.</p>
+                        <p class="text-xs text-rose-400 mt-1 font-mono">El Código DANE debe tener exactamente 12 dígitos numéricos.</p>
                       }
                     </div>
 
@@ -278,7 +277,7 @@ import { CategoryId, Registration } from '../../models/registration.model';
                 <div class="space-y-6 animate-fadeIn">
                   
                   <div class="bg-[#05060a] p-4 border border-[#00f3ff]/30 text-xs text-[#00f3ff] font-mono">
-                    <strong class="font-bold">DATOS DEL LÍDER DEL EQUIPO:</strong> Se enviará la confirmación y acreditación al correo registrado.
+                    <strong class="font-bold">ESTUDIANTES:</strong> Registra al menos un estudiante con nombre y documento. El segundo cupo es opcional.
                   </div>
 
                   <div class="grid sm:grid-cols-2 gap-4">
@@ -310,49 +309,35 @@ import { CategoryId, Registration } from '../../models/registration.model';
                     </div>
                   </div>
 
-                  <div class="grid sm:grid-cols-2 gap-4">
-                    <div>
-                      <label for="leaderEmail" class="block text-xs font-mono font-bold text-gray-300 mb-1 uppercase">CORREO ELECTRÓNICO <span class="text-[#00f3ff]">*</span></label>
-                      <input 
-                        id="leaderEmail"
-                        type="email" 
-                        formControlName="leaderEmail" 
-                        placeholder="CORREO@EJEMPLO.COM"
-                        class="w-full px-4 py-3 bg-[#05060a] border border-[#00f3ff]/30 text-white placeholder-gray-600 focus:outline-none focus:border-[#00f3ff] text-xs font-mono" />
-                      @if (f['leaderEmail'].touched && f['leaderEmail'].invalid) {
-                        <p class="text-xs text-rose-400 mt-1 font-mono">Ingresa un correo válido con formato usuario&#64;dominio.com.</p>
-                      }
-                    </div>
-
-                    <div>
-                      <label for="leaderPhone" class="block text-xs font-mono font-bold text-gray-300 mb-1 uppercase">TELÉFONO DE CONTACTO <span class="text-[#00f3ff]">*</span></label>
-                      <input 
-                        id="leaderPhone"
-                        type="tel" 
-                        formControlName="leaderPhone" 
-                        inputmode="numeric"
-                        maxlength="10"
-                        placeholder="EJ. 3101234567"
-                        class="w-full px-4 py-3 bg-[#05060a] border border-[#00f3ff]/30 text-white placeholder-gray-600 focus:outline-none focus:border-[#00f3ff] text-xs font-mono" />
-                      @if (f['leaderPhone'].touched && f['leaderPhone'].invalid) {
-                        <p class="text-xs text-rose-400 mt-1 font-mono">El celular debe tener exactamente 10 dígitos.</p>
-                      }
-                    </div>
-                  </div>
-
                   <div class="pt-4 border-t border-[#00f3ff]/20">
                     <h4 class="text-xs font-mono font-bold text-gray-300 uppercase tracking-wider mb-4">DOCENTE / PROFESOR <span class="text-[#00f3ff]">*</span></h4>
                     <div class="grid sm:grid-cols-2 gap-4">
                       <div>
-                        <input type="text" formControlName="mentorName" placeholder="Nombre completo del docente o profesor" class="w-full px-4 py-3 bg-[#05060a] border border-[#00f3ff]/30 text-white placeholder-gray-600 text-xs font-mono" />
+                        <label for="mentorName" class="block text-xs font-mono font-bold text-gray-300 mb-1 uppercase">NOMBRE COMPLETO <span class="text-[#00f3ff]">*</span></label>
+                        <input id="mentorName" type="text" formControlName="mentorName" placeholder="Nombre completo del docente" class="w-full px-4 py-3 bg-[#05060a] border border-[#00f3ff]/30 text-white placeholder-gray-600 text-xs font-mono" />
                         @if (f['mentorName'].touched && f['mentorName'].invalid) {
                           <p class="text-xs text-rose-400 mt-1 font-mono">El nombre del docente es obligatorio.</p>
                         }
                       </div>
                       <div>
-                        <input type="text" inputmode="numeric" formControlName="mentorDoc" placeholder="Documento del docente o profesor" class="w-full px-4 py-3 bg-[#05060a] border border-[#00f3ff]/30 text-white placeholder-gray-600 text-xs font-mono" />
+                        <label for="mentorDoc" class="block text-xs font-mono font-bold text-gray-300 mb-1 uppercase">DOCUMENTO DE IDENTIDAD <span class="text-[#00f3ff]">*</span></label>
+                        <input id="mentorDoc" type="text" inputmode="numeric" formControlName="mentorDoc" placeholder="Solo números" class="w-full px-4 py-3 bg-[#05060a] border border-[#00f3ff]/30 text-white placeholder-gray-600 text-xs font-mono" />
                         @if (f['mentorDoc'].touched && f['mentorDoc'].invalid) {
-                          <p class="text-xs text-rose-400 mt-1 font-mono">El documento debe ser numérico.</p>
+                          <p class="text-xs text-rose-400 mt-1 font-mono">El documento solo debe contener números.</p>
+                        }
+                      </div>
+                      <div>
+                        <label for="mentorEmail" class="block text-xs font-mono font-bold text-gray-300 mb-1 uppercase">CORREO ELECTRÓNICO <span class="text-[#00f3ff]">*</span></label>
+                        <input id="mentorEmail" type="email" formControlName="mentorEmail" placeholder="CORREO@EJEMPLO.COM" class="w-full px-4 py-3 bg-[#05060a] border border-[#00f3ff]/30 text-white placeholder-gray-600 text-xs font-mono" />
+                        @if (f['mentorEmail'].touched && f['mentorEmail'].invalid) {
+                          <p class="text-xs text-rose-400 mt-1 font-mono">Ingresa un correo electrónico válido.</p>
+                        }
+                      </div>
+                      <div>
+                        <label for="mentorPhone" class="block text-xs font-mono font-bold text-gray-300 mb-1 uppercase">NÚMERO DE CONTACTO <span class="text-[#00f3ff]">*</span></label>
+                        <input id="mentorPhone" type="tel" inputmode="numeric" maxlength="10" formControlName="mentorPhone" placeholder="10 dígitos, solo números" class="w-full px-4 py-3 bg-[#05060a] border border-[#00f3ff]/30 text-white placeholder-gray-600 text-xs font-mono" />
+                        @if (f['mentorPhone'].touched && f['mentorPhone'].invalid) {
+                          <p class="text-xs text-rose-400 mt-1 font-mono">El contacto debe tener exactamente 10 dígitos numéricos.</p>
                         }
                       </div>
                     </div>
@@ -361,40 +346,35 @@ import { CategoryId, Registration } from '../../models/registration.model';
                   <!-- Additional Members -->
                   <div class="pt-4 border-t border-[#00f3ff]/20">
                     <div class="flex items-center justify-between mb-4">
-                      <h4 class="text-xs font-mono font-bold text-gray-300 uppercase tracking-wider">INTEGRANTES ADICIONALES</h4>
-                      <button 
-                        (click)="addMember()"
-                        type="button" 
-                        [disabled]="membersArray.length >= 1"
-                        class="px-3 py-1.5 bg-[#05060a] text-[#00f3ff] hover:bg-[#00f3ff] hover:text-black border border-[#00f3ff]/30 text-xs font-mono font-bold uppercase transition-all flex items-center gap-1">
-                        <mat-icon class="text-sm">add</mat-icon> AGREGAR INTEGRANTE
-                      </button>
+                      <h4 class="text-xs font-mono font-bold text-gray-300 uppercase tracking-wider">SEGUNDO ESTUDIANTE (OPCIONAL)</h4>
                     </div>
 
                     <div formArrayName="members" class="space-y-3">
                       @for (m of membersArray.controls; track $index) {
-                        <div [formGroupName]="$index" class="p-3 bg-[#05060a] border border-[#00f3ff]/20 flex items-center justify-between gap-3">
-                          <div class="grid grid-cols-2 gap-3 flex-1">
+                        <div [formGroupName]="$index" class="p-3 bg-[#05060a] border border-[#00f3ff]/20">
+                          <div class="grid sm:grid-cols-2 gap-3">
                             <input 
                               type="text" 
                               formControlName="fullName" 
-                              placeholder="Nombre integrante"
+                              aria-label="Nombre del segundo estudiante"
+                              placeholder="Nombre completo"
                               class="px-3 py-2 bg-[#11141d] border border-[#00f3ff]/30 text-white text-xs font-mono" />
                             
                             <input 
                               type="text" 
                               formControlName="documentId" 
                               inputmode="numeric"
-                              placeholder="Documento numérico"
+                              aria-label="Documento del segundo estudiante"
+                              placeholder="Documento, solo números"
                               class="px-3 py-2 bg-[#11141d] border border-[#00f3ff]/30 text-white text-xs font-mono" />
                           </div>
 
-                          <button 
-                            (click)="removeMember($index)"
-                            type="button" 
-                            class="p-2 text-rose-400 hover:bg-rose-500/10">
-                            <mat-icon class="text-sm">delete</mat-icon>
-                          </button>
+                          @if (m.touched && m.errors?.['incompleteMember']) {
+                            <p class="text-xs text-rose-400 mt-1 font-mono">Completa nombre y documento, o deja ambos campos vacíos.</p>
+                          }
+                          @if (m.get('documentId')?.touched && m.get('documentId')?.invalid) {
+                            <p class="text-xs text-rose-400 mt-1 font-mono">El documento solo debe contener números.</p>
+                          }
                         </div>
                       }
                     </div>
@@ -524,16 +504,16 @@ export class RegistrationFormComponent {
     teamName: ['', [Validators.required, Validators.minLength(3)]],
     projectTitle: ['', Validators.required],
     institutionType: ['Colegio / I.E.', Validators.required],
-    institutionNit: ['', [Validators.required, Validators.pattern(/^(?:\d{9,10}|\d{9}-\d|\d{3}(?:\.\d{3}){2}(?:-\d)?)$/)]],
+    institutionNit: ['', [Validators.required, Validators.pattern(/^\d{12}$/)]],
     city: ['Nobsa', Validators.required],
     department: ['Boyacá'],
     leaderName: ['', Validators.required],
     leaderDoc: ['', [Validators.required, Validators.pattern(/^\d+$/)]],
-    leaderEmail: ['', [Validators.required, Validators.pattern(/^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$/)]],
-    leaderPhone: ['', [Validators.required, Validators.pattern(/^\d{10}$/)]],
     mentorName: ['', Validators.required],
     mentorDoc: ['', [Validators.required, Validators.pattern(/^\d+$/)]],
-    members: this.fb.array([]),
+    mentorEmail: ['', [Validators.required, Validators.email]],
+    mentorPhone: ['', [Validators.required, Validators.pattern(/^\d{10}$/)]],
+    members: this.fb.array([this.createOptionalMember()]),
     projectDescription: ['', [Validators.required, Validators.minLength(15)]],
     technicalSpecs: [''],
     spaceRequirements: [''],
@@ -548,27 +528,26 @@ export class RegistrationFormComponent {
     return this.regForm.get('members') as FormArray;
   }
 
+  private createOptionalMember() {
+    return this.fb.group({
+      fullName: [''],
+      documentId: ['', Validators.pattern(/^\d+$/)],
+      role: ['Integrante']
+    }, { validators: this.validateOptionalMember });
+  }
+
+  private validateOptionalMember(control: AbstractControl): ValidationErrors | null {
+    const fullName = String(control.get('fullName')?.value || '').trim();
+    const documentId = String(control.get('documentId')?.value || '').trim();
+    return Boolean(fullName) === Boolean(documentId) ? null : { incompleteMember: true };
+  }
+
   constructor() {
     // Sync preselected category signal
     const selectedCat = this.regService.selectedCategoryForForm();
     if (selectedCat) {
       this.regForm.patchValue({ category: selectedCat });
     }
-  }
-
-  addMember(): void {
-    if (this.membersArray.length >= 1) return;
-    this.membersArray.push(
-      this.fb.group({
-        fullName: ['', Validators.required],
-        documentId: ['', [Validators.required, Validators.pattern(/^\d+$/)]],
-        role: ['Integrante']
-      })
-    );
-  }
-
-  removeMember(index: number): void {
-    this.membersArray.removeAt(index);
   }
 
   goToStep(step: number): void {
@@ -581,13 +560,14 @@ export class RegistrationFormComponent {
       }
     }
     if (step === 3) {
-      if (this.f['leaderName'].invalid || this.f['leaderDoc'].invalid || this.f['leaderEmail'].invalid || this.f['leaderPhone'].invalid || this.f['mentorName'].invalid || this.f['mentorDoc'].invalid) {
+      if (this.f['leaderName'].invalid || this.f['leaderDoc'].invalid || this.f['mentorName'].invalid || this.f['mentorDoc'].invalid || this.f['mentorEmail'].invalid || this.f['mentorPhone'].invalid || this.membersArray.invalid) {
         this.f['leaderName'].markAsTouched();
         this.f['leaderDoc'].markAsTouched();
-        this.f['leaderEmail'].markAsTouched();
-        this.f['leaderPhone'].markAsTouched();
         this.f['mentorName'].markAsTouched();
         this.f['mentorDoc'].markAsTouched();
+        this.f['mentorEmail'].markAsTouched();
+        this.f['mentorPhone'].markAsTouched();
+        this.membersArray.markAllAsTouched();
         return;
       }
     }
@@ -602,8 +582,9 @@ export class RegistrationFormComponent {
 
     this.isSubmitting.set(true);
     const formValue = this.regForm.value;
+    const members = (formValue.members || []).filter(member => member?.fullName || member?.documentId);
 
-    this.regService.createRegistration(formValue as Partial<Registration>).subscribe({
+    this.regService.createRegistration({ ...formValue, members } as Partial<Registration>).subscribe({
       next: registration => {
         this.isSubmitting.set(false);
         const emailSent = this.regService.confirmationEmailSent();
@@ -611,7 +592,7 @@ export class RegistrationFormComponent {
           icon: emailSent ? 'success' : 'warning',
           title: emailSent ? '¡Inscripción realizada!' : 'Inscripción guardada',
           text: emailSent
-            ? `La confirmación fue enviada al correo ${registration.leaderEmail}.`
+            ? `La confirmación fue enviada al correo ${registration.mentorEmail}.`
             : 'La inscripción quedó guardada, pero no fue posible enviar el correo de confirmación.'
         });
       },
@@ -657,6 +638,7 @@ export class RegistrationFormComponent {
       acceptTerms: true
     });
     this.membersArray.clear();
+    this.membersArray.push(this.createOptionalMember());
     this.currentStep.set(1);
   }
 }

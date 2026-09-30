@@ -25,14 +25,14 @@ export async function sendRegistrationConfirmation(registration: Registration): 
         ['Categoría', registration.categoryName],
         ['Equipo', registration.teamName],
         ['Proyecto', registration.projectTitle],
-        ['NIT de la institución', registration.institutionNit || 'No registrado'],
+        ['Código DANE de la institución', registration.institutionNit || 'No registrado'],
         ['Ubicación', `${registration.city}, ${registration.department}`],
         ['Líder', registration.leaderName],
         ['Documento del líder', registration.leaderDoc],
-        ['Correo', registration.leaderEmail],
-        ['Teléfono', registration.leaderPhone],
         ['Docente', registration.mentorName || 'No registrado'],
         ['Documento del docente', registration.mentorDoc || 'No registrado'],
+        ['Correo del docente', registration.mentorEmail || 'No registrado'],
+        ['Teléfono del docente', registration.mentorPhone || 'No registrado'],
         ['Integrantes adicionales', registration.members.slice(1).map(member => `${member.fullName} (${member.documentId})`).join(', ') || 'Ninguno'],
         ['Descripción', registration.projectDescription],
         ['Especificaciones técnicas', registration.technicalSpecs || 'No registradas'],
@@ -59,7 +59,7 @@ export async function sendRegistrationConfirmation(registration: Registration): 
         });
         const result = await transporter.sendMail({
             from: { name: 'Feria de Robótica Nobsa', address: user },
-            to: registration.leaderEmail,
+            to: registration.mentorEmail || '',
             subject: `Inscripción confirmada: ${registration.code}`,
             text,
             html

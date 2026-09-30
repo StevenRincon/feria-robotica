@@ -19,7 +19,7 @@ import {
 import type { Registration, RegistrationStatus } from './app/models/registration.model';
 import { createParticipationCertificate } from './server/certificate';
 import { sendRegistrationConfirmation } from './server/registration-email';
-import { normalizeInstitutionNit } from './server/institution-nit';
+import { normalizeInstitutionDane } from './server/institution-nit';
 import { areCertificatesAvailable, CERTIFICATE_AVAILABILITY_MESSAGE } from './shared/certificate-availability';
 
 const browserDistFolder = join(import.meta.dirname, '../browser');
@@ -49,6 +49,8 @@ interface RegistrationItem {
   leaderPhone: string;
   mentorName?: string;
   mentorDoc?: string;
+  mentorEmail?: string;
+  mentorPhone?: string;
   members: {
     id: string;
     fullName: string;
@@ -202,8 +204,8 @@ app.get('/api/registrations', async (req, res) => {
   if (teacher) filters.push({ mentorName: { $regex: teacher.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), $options: 'i' } });
   if (teacherDoc) filters.push({ mentorDoc: { $regex: teacherDoc.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), $options: 'i' } });
   if (institutionNitInput) {
-    const institutionNit = normalizeInstitutionNit(institutionNitInput);
-    if (!institutionNit) return res.status(400).json({ success: false, message: 'El NIT debe tener 9 o 10 dígitos y un formato válido.' });
+    const institutionNit = normalizeInstitutionDane(institutionNitInput);
+    if (!institutionNit) return res.status(400).json({ success: false, message: 'El Código DANE debe contener exactamente 12 dígitos, sin puntos ni comas.' });
     filters.push({ institutionNit });
   }
   if (filters.length) query['$and'] = filters;
@@ -276,21 +278,24 @@ app.get('/api/certificates', async (req, res) => {
 app.post('/api/registrations', async (req, res) => {
   try {
     const body = req.body;
-    if (!body || !body.teamName || !body.projectTitle || !body.institutionNit || !body.leaderName || !body.leaderDoc || !body.leaderEmail || !body.leaderPhone || !body.mentorName || !body.mentorDoc || !body.category || !body.projectDescription) {
+    if (!body || !body.teamName || !body.projectTitle || !body.institutionNit || !body.leaderName || !body.leaderDoc || !body.mentorName || !body.mentorDoc || !body.mentorEmail || !body.mentorPhone || !body.category || !body.projectDescription) {
       return res.status(400).json({ success: false, message: 'Faltan campos obligatorios para el registro.' });
     }
-    const institutionNit = normalizeInstitutionNit(body.institutionNit);
-    if (!institutionNit) return res.status(400).json({ success: false, message: 'El NIT debe tener 9 o 10 dígitos y un formato válido.' });
+    const institutionNit = normalizeInstitutionDane(body.institutionNit);
+    if (!institutionNit) return res.status(400).json({ success: false, message: 'El Código DANE debe contener exactamente 12 dígitos, sin puntos ni comas.' });
 
     const emailPattern = /^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$/;
     if (!/^\d+$/.test(String(body.leaderDoc)) || !/^\d+$/.test(String(body.mentorDoc))) {
       return res.status(400).json({ success: false, message: 'Los documentos deben contener únicamente números.' });
     }
-    if (!/^\d{10}$/.test(String(body.leaderPhone))) {
-      return res.status(400).json({ success: false, message: 'El celular debe contener exactamente 10 dígitos.' });
+    if (!/^\d{10}$/.test(String(body.mentorPhone))) {
+      return res.status(400).json({ success: false, message: 'El número de contacto del docente debe contener exactamente 10 dígitos numéricos.' });
     }
-    if (!emailPattern.test(String(body.leaderEmail))) {
-      return res.status(400).json({ success: false, message: 'El correo electrónico no tiene un formato válido.' });
+    if (!emailPattern.test(String(body.mentorEmail))) {
+      return res.status(400).json({ success: false, message: 'El correo electrónico del docente no tiene un formato válido.' });
+    }
+    if (body.institutionType && body.institutionType !== 'Colegio / I.E.') {
+      return res.status(400).json({ success: false, message: 'Solo se permiten inscripciones de instituciones educativas.' });
     }
 
     if (!['automatizacion', 'seguidores', 'educativos'].includes(body.category)) {
@@ -307,7 +312,9 @@ app.post('/api/registrations', async (req, res) => {
       });
     }
 
-    const requestedMembers = Array.isArray(body.members) ? body.members : [];
+    const requestedMembers = Array.isArray(body.members)
+      ? body.members.filter((member: { fullName?: string; documentId?: string }) => member?.fullName || member?.documentId)
+      : [];
     if (requestedMembers.length > 1) {
       return res.status(400).json({ success: false, message: 'Una inscripción permite máximo dos estudiantes y un profesor.' });
     }
@@ -316,7 +323,7 @@ app.post('/api/registrations', async (req, res) => {
     }
 
     const members = [
-      { id: `member-${randomUUID()}`, fullName: body.leaderName, documentId: body.leaderDoc, role: 'Líder / Capitán' as const, email: body.leaderEmail, phone: body.leaderPhone },
+      { id: `member-${randomUUID()}`, fullName: body.leaderName, documentId: body.leaderDoc, role: 'Líder / Capitán' as const },
       ...requestedMembers.map((member: { fullName: string; documentId: string }) => ({
         id: `member-${randomUUID()}`,
         fullName: member.fullName,
@@ -346,15 +353,15 @@ app.post('/api/registrations', async (req, res) => {
       teamName: body.teamName,
       projectTitle: body.projectTitle || 'Proyecto de Robótica',
       institutionNit,
-      institutionType: body.institutionType || 'Colegio / I.E.',
+      institutionType: 'Colegio / I.E.',
       city: body.city || 'Nobsa',
       department: body.department || 'Boyacá',
       leaderName: body.leaderName,
       leaderDoc: body.leaderDoc || '',
-      leaderEmail: body.leaderEmail,
-      leaderPhone: body.leaderPhone || '',
       mentorName: body.mentorName || '',
       mentorDoc: body.mentorDoc || '',
+      mentorEmail: body.mentorEmail,
+      mentorPhone: body.mentorPhone,
       members,
       projectDescription: body.projectDescription || '',
       technicalSpecs: body.technicalSpecs || '',

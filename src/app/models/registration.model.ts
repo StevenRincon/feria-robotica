@@ -26,10 +26,12 @@ export interface Registration {
   department: string;
   leaderName: string;
   leaderDoc: string;
-  leaderEmail: string;
-  leaderPhone: string;
+  leaderEmail?: string;
+  leaderPhone?: string;
   mentorName?: string;
   mentorDoc?: string;
+  mentorEmail?: string;
+  mentorPhone?: string;
   members: TeamMember[];
   projectDescription: string;
   technicalSpecs?: string;

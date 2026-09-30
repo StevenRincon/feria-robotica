@@ -21,7 +21,7 @@ import { areCertificatesAvailable, CERTIFICATE_AVAILABILITY_MESSAGE } from '../.
             BUSCA TU <span class="text-[#00f3ff]">CERTIFICADO</span>
           </h2>
           <p class="text-gray-300 text-xs sm:text-sm font-sans">
-            Consulta por proyecto, docente, documento o NIT de la institución. Al encontrarlo podrás descargar el certificado en PDF.
+            Consulta por proyecto, docente, documento o Código DANE de la institución. Al encontrarlo podrás descargar el certificado en PDF.
           </p>
           @if (!certificatesAvailable()) {
             <p class="inline-flex items-center justify-center gap-2 border border-amber-400/40 bg-amber-400/10 px-4 py-2 text-xs font-mono font-bold text-amber-300" role="status">
@@ -39,7 +39,7 @@ import { areCertificatesAvailable, CERTIFICATE_AVAILABILITY_MESSAGE } from '../.
               class="w-full px-4 py-3 bg-[#05060a] border border-[#00f3ff]/30 text-white placeholder-gray-600 focus:outline-none focus:border-[#00f3ff] text-xs font-mono uppercase" />
             <input type="text" [(ngModel)]="teacherDocQuery" placeholder="DOCUMENTO DEL DOCENTE"
               class="w-full px-4 py-3 bg-[#05060a] border border-[#00f3ff]/30 text-white placeholder-gray-600 focus:outline-none focus:border-[#00f3ff] text-xs font-mono uppercase" />
-            <input type="text" [(ngModel)]="institutionQuery" placeholder="NIT DE LA INSTITUCIÓN"
+            <input type="text" [(ngModel)]="institutionQuery" placeholder="CÓDIGO DANE DE LA INSTITUCIÓN"
               class="w-full px-4 py-3 bg-[#05060a] border border-[#00f3ff]/30 text-white placeholder-gray-600 focus:outline-none focus:border-[#00f3ff] text-xs font-mono uppercase" />
             <select [(ngModel)]="categoryQuery" class="w-full px-4 py-3 bg-[#05060a] border border-[#00f3ff]/30 text-white focus:outline-none focus:border-[#00f3ff] text-xs font-mono uppercase">
               <option value="all">TODAS LAS CATEGORÍAS</option>
@@ -76,7 +76,7 @@ import { areCertificatesAvailable, CERTIFICATE_AVAILABILITY_MESSAGE } from '../.
                       <div class="grid sm:grid-cols-2 gap-x-8 gap-y-1 pt-3 border-t border-[#00f3ff]/20 text-xs text-gray-300 font-mono">
                         <span><strong class="text-white">DOCENTE:</strong> {{ item.mentorName || 'No registrado' }}</span>
                         <span><strong class="text-white">DOCUMENTO:</strong> {{ item.mentorDoc || 'No registrado' }}</span>
-                        <span><strong class="text-white">NIT INSTITUCIÓN:</strong> {{ item.institutionNit || 'No registrado' }}</span>
+                        <span><strong class="text-white">CÓDIGO DANE:</strong> {{ item.institutionNit || 'No registrado' }}</span>
                         <span><strong class="text-white">FECHA:</strong> {{ item.createdAt | date:'longDate' }}</span>
                       </div>
                     </div>

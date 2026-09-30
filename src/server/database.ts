@@ -23,7 +23,7 @@ const registrationValidator = {
     required: [
       'id', 'code', 'createdAt', 'category', 'categoryName', 'teamName',
       'projectTitle', 'institutionType', 'city', 'department',
-      'leaderName', 'leaderDoc', 'leaderEmail', 'leaderPhone', 'members',
+      'leaderName', 'leaderDoc', 'members',
       'projectDescription', 'status'
     ],
     properties: {
@@ -34,17 +34,19 @@ const registrationValidator = {
       categoryName: { bsonType: 'string' },
       teamName: { bsonType: 'string', minLength: 3 },
       projectTitle: { bsonType: 'string' },
-      institutionNit: { bsonType: 'string', pattern: '^[0-9]{9,10}$' },
+      institutionNit: { bsonType: 'string', pattern: '^(?:[0-9]{9,10}|[0-9]{12})$' },
       institution: { bsonType: 'string' },
       institutionType: { enum: ['Colegio / I.E.', 'Universidad / SENA', 'Club / Independiente', 'Empresa / StartUp'] },
       city: { bsonType: 'string' },
       department: { bsonType: 'string' },
       leaderName: { bsonType: 'string' },
-      leaderDoc: { bsonType: 'string' },
+      leaderDoc: { bsonType: 'string', pattern: '^[0-9]+$' },
       leaderEmail: { bsonType: 'string' },
       leaderPhone: { bsonType: 'string' },
       mentorName: { bsonType: 'string' },
-      mentorDoc: { bsonType: 'string' },
+      mentorDoc: { bsonType: 'string', pattern: '^[0-9]+$' },
+      mentorEmail: { bsonType: 'string' },
+      mentorPhone: { bsonType: 'string', pattern: '^[0-9]{10}$' },
       members: {
         bsonType: 'array',
         minItems: 1,
@@ -55,7 +57,7 @@ const registrationValidator = {
           properties: {
             id: { bsonType: 'string' },
             fullName: { bsonType: 'string' },
-            documentId: { bsonType: 'string' },
+            documentId: { bsonType: 'string', pattern: '^[0-9]+$' },
             role: { enum: ['Líder / Capitán', 'Integrante', 'Tutor / Asesor'] },
             email: { bsonType: 'string' },
             phone: { bsonType: 'string' }
