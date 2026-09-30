@@ -63,7 +63,7 @@ import { MatIconModule } from '@angular/material/icon';
           <div class="flex flex-wrap items-center justify-between gap-4 mb-8 pb-6 border-b border-[#00f3ff]/20">
             <div>
               <h3 class="font-black text-2xl text-white uppercase tracking-tight">CRONOGRAMA DE ACTIVIDADES</h3>
-              <p class="text-xs font-mono text-[#00f3ff] mt-1">VIERNES 6 DE NOVIEMBRE DE 2026 // I.E. TÉCNICA DE NAZARETH</p>
+              <p class="text-xs font-mono text-[#00f3ff] mt-1">VIERNES 6 DE NOVIEMBRE DE 2026 // COLISEO DE NAZARETH</p>
             </div>
 
             <!-- Day Selector -->
@@ -92,81 +92,17 @@ import { MatIconModule } from '@angular/material/icon';
 
           <!-- Day 1 Schedule Items -->
           @if (activeDay() === 1) {
-            <div class="space-y-4 animate-fadeIn">
-              <div class="flex items-start gap-4 p-4 bg-[#11141d] border border-[#00f3ff]/20">
-                <div class="text-xs font-mono font-bold text-black bg-[#00f3ff] px-3 py-1.5 shrink-0 uppercase">
-                  08:00 AM - 09:30 AM
-                </div>
-                <div>
-                  <h4 class="text-sm font-bold text-white uppercase tracking-wide">Registro de Delegaciones y Acreditación</h4>
-                  <p class="text-xs text-gray-400 mt-1">Entrega de escarapelas digitales, asignación de mesas en la zona de pit/boxes e inspección técnica inicial.</p>
-                </div>
+            <div class="p-8 text-center bg-[#11141d] border border-[#00f3ff]/20 animate-fadeIn">
+              <p class="text-sm font-mono font-bold text-[#00f3ff] uppercase tracking-widest">Disponible próximamente</p>
               </div>
-
-              <div class="flex items-start gap-4 p-4 bg-[#11141d] border border-[#00f3ff]/20">
-                <div class="text-xs font-mono font-bold text-black bg-[#00f3ff] px-3 py-1.5 shrink-0 uppercase">
-                  09:30 AM - 10:30 AM
-                </div>
-                <div>
-                  <h4 class="text-sm font-bold text-white uppercase tracking-wide">Inauguración Oficial y Conferencia de Apertura</h4>
-                  <p class="text-xs text-gray-400 mt-1">Palabras del Alcalde Municipal de Nobsa y ponencia sobre "Robótica Móvil e Inteligencia Artificial en el Campo Colombiano".</p>
-                </div>
-              </div>
-
-              <div class="flex items-start gap-4 p-4 bg-[#11141d] border border-[#00f3ff]/20">
-                <div class="text-xs font-mono font-bold text-black bg-[#00f3ff] px-3 py-1.5 shrink-0 uppercase">
-                  10:30 AM - 01:00 PM
-                </div>
-                <div>
-                  <h4 class="text-sm font-bold text-white uppercase tracking-wide">Evaluación de Proyectos de Automatización Electrónica</h4>
-                  <p class="text-xs text-gray-400 mt-1">Exposición en stands ante los jurados técnicos. Evaluación de funcionamiento, esquemáticos y sustentación oral.</p>
-                </div>
-              </div>
-
-              <div class="flex items-start gap-4 p-4 bg-[#11141d] border border-[#00f3ff]/20">
-                <div class="text-xs font-mono font-bold text-black bg-[#00f3ff] px-3 py-1.5 shrink-0 uppercase">
-                  02:00 PM - 05:00 PM
-                </div>
-                <div>
-                  <h4 class="text-sm font-bold text-white uppercase tracking-wide">Presentación de Proyectos para Primaria</h4>
-                  <p class="text-xs text-gray-400 mt-1">Exposición abierta a colegios invitados y comunidad general. Votación del público asistente para la mención especial.</p>
-                </div>
-              </div>
-            </div>
           }
 
           <!-- Day 2 Schedule Items -->
           @if (activeDay() === 2) {
-            <div class="space-y-4 animate-fadeIn">
-              <div class="flex items-start gap-4 p-4 bg-[#11141d] border border-[#00f3ff]/20">
-                <div class="text-xs font-mono font-bold text-black bg-amber-400 px-3 py-1.5 shrink-0 uppercase">
-                  08:30 AM - 10:00 AM
-                </div>
-                <div>
-                  <h4 class="text-sm font-bold text-white uppercase tracking-wide">Inspección de Pista y Rondas de Prueba: Seguidores de Línea</h4>
-                  <p class="text-xs text-gray-400 mt-1">Verificación de homologación de medidas de robots velocistas y calibración de sensores infrarrojos sobre la pista oficial.</p>
-                </div>
-              </div>
-
-              <div class="flex items-start gap-4 p-4 bg-[#11141d] border border-[#00f3ff]/20">
-                <div class="text-xs font-mono font-bold text-black bg-amber-400 px-3 py-1.5 shrink-0 uppercase">
-                  10:00 AM - 01:00 PM
-                </div>
-                <div>
-                  <h4 class="text-sm font-bold text-white uppercase tracking-wide">Rondas de Eliminatoria Directa y Finales de Velocistas</h4>
-                  <p class="text-xs text-gray-400 mt-1">Competencia de velocidad con cronometraje electrónico de milisegundos. 3 intentos por competidor.</p>
-                </div>
-              </div>
-
+            <div class="p-8 text-center bg-[#11141d] border border-[#00f3ff]/20 animate-fadeIn">
+              <p class="text-sm font-mono font-bold text-[#00f3ff] uppercase tracking-widest">Disponible próximamente</p>
             </div>
           }
-
-          <div class="mt-8 grid md:grid-cols-2 gap-4">
-            <div class="p-5 bg-[#11141d] border border-emerald-500/30 md:col-span-2">
-              <h4 class="text-sm font-bold text-emerald-300 uppercase tracking-wide mb-2">Alimentación y contacto</h4>
-              <p class="text-xs text-gray-300 leading-relaxed">Por proyecto: máximo 2 estudiantes y 1 docente acompañante. Se ofrecerá refrigerio y almuerzo. Teléfonos: 3002906330, 3167765610 y 3204197454.</p>
-            </div>
-          </div>
 
         </div>
 
