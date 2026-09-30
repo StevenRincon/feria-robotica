@@ -3,7 +3,7 @@ import { randomUUID } from 'node:crypto';
 import type { Registration, RegistrationStatus } from '../src/app/models/registration.model';
 import { createParticipationCertificate } from '../src/server/certificate.js';
 import { sendRegistrationConfirmation } from '../src/server/registration-email.js';
-import { normalizeInstitutionNit } from '../src/server/institution-nit.js';
+import { normalizeInstitutionDane } from '../src/server/institution-nit.js';
 import { areCertificatesAvailable, CERTIFICATE_AVAILABILITY_MESSAGE } from '../src/shared/certificate-availability.js';
 import {
     countInstitutionCategoryRegistrations,
@@ -45,8 +45,8 @@ api.get('/api/registrations', async (req, res) => {
         if (teacher) filters.push({ mentorName: { $regex: teacher.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), $options: 'i' } });
         if (teacherDoc) filters.push({ mentorDoc: { $regex: teacherDoc.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), $options: 'i' } });
         if (institutionNitInput) {
-            const institutionNit = normalizeInstitutionNit(institutionNitInput);
-            if (!institutionNit) return res.status(400).json({ success: false, message: 'El NIT debe tener 9 o 10 dígitos y un formato válido.' });
+            const institutionNit = normalizeInstitutionDane(institutionNitInput);
+            if (!institutionNit) return res.status(400).json({ success: false, message: 'El Código DANE debe contener exactamente 12 dígitos, sin puntos ni comas.' });
             filters.push({ institutionNit });
         }
         if (filters.length) query['$and'] = filters;
@@ -93,11 +93,24 @@ api.get('/api/certificates/:id', async (req, res) => {
 api.post('/api/registrations', async (req, res) => {
     try {
         const body = req.body;
-        if (!body || !body.teamName || !body.projectTitle || !body.institutionNit || !body.leaderName || !body.leaderDoc || !body.leaderEmail || !body.leaderPhone || !body.category || !body.projectDescription) {
+        if (!body || !body.teamName || !body.projectTitle || !body.institutionNit || !body.leaderName || !body.leaderDoc || !body.mentorName || !body.mentorDoc || !body.mentorEmail || !body.mentorPhone || !body.category || !body.projectDescription) {
             return res.status(400).json({ success: false, message: 'Faltan campos obligatorios para el registro.' });
         }
-        const institutionNit = normalizeInstitutionNit(body.institutionNit);
-        if (!institutionNit) return res.status(400).json({ success: false, message: 'El NIT debe tener 9 o 10 dígitos y un formato válido.' });
+        const institutionNit = normalizeInstitutionDane(body.institutionNit);
+        if (!institutionNit) return res.status(400).json({ success: false, message: 'El Código DANE debe contener exactamente 12 dígitos, sin puntos ni comas.' });
+        if (!/^\d+$/.test(String(body.leaderDoc)) || !/^\d+$/.test(String(body.mentorDoc))) {
+            return res.status(400).json({ success: false, message: 'Los documentos deben contener únicamente números.' });
+        }
+        if (!/^\d{10}$/.test(String(body.mentorPhone))) {
+            return res.status(400).json({ success: false, message: 'El número de contacto del docente debe contener exactamente 10 dígitos numéricos.' });
+        }
+        const emailPattern = /^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$/;
+        if (!emailPattern.test(String(body.mentorEmail))) {
+            return res.status(400).json({ success: false, message: 'El correo electrónico del docente no tiene un formato válido.' });
+        }
+        if (body.institutionType && body.institutionType !== 'Colegio / I.E.') {
+            return res.status(400).json({ success: false, message: 'Solo se permiten inscripciones de instituciones educativas.' });
+        }
         if (!['automatizacion', 'seguidores', 'educativos'].includes(body.category)) {
             return res.status(400).json({ success: false, message: 'La categoría de inscripción no es válida.' });
         }
@@ -110,17 +123,16 @@ api.post('/api/registrations', async (req, res) => {
             });
         }
 
-        const requestedMembers = Array.isArray(body.members) ? body.members : [];
+        const requestedMembers = Array.isArray(body.members)
+            ? body.members.filter((member: { fullName?: string; documentId?: string }) => member?.fullName || member?.documentId)
+            : [];
         if (requestedMembers.length > 1) return res.status(400).json({ success: false, message: 'Una inscripción permite máximo dos estudiantes y un profesor.' });
-        if (requestedMembers.some((member: { fullName?: string; documentId?: string }) => !member.fullName || !member.documentId)) {
+        if (requestedMembers.some((member: { fullName?: string; documentId?: string }) => !member.fullName || !member.documentId || !/^\d+$/.test(String(member.documentId)))) {
             return res.status(400).json({ success: false, message: 'Cada estudiante debe tener nombre y documento.' });
-        }
-        if (Boolean(body.mentorName) !== Boolean(body.mentorDoc)) {
-            return res.status(400).json({ success: false, message: 'El profesor o tutor debe registrarse con nombre y documento.' });
         }
 
         const members = [
-            { id: `member-${randomUUID()}`, fullName: body.leaderName, documentId: body.leaderDoc, role: 'Líder / Capitán' as const, email: body.leaderEmail, phone: body.leaderPhone },
+            { id: `member-${randomUUID()}`, fullName: body.leaderName, documentId: body.leaderDoc, role: 'Líder / Capitán' as const },
             ...requestedMembers.map((member: { fullName: string; documentId: string }) => ({ id: `member-${randomUUID()}`, fullName: member.fullName, documentId: member.documentId, role: 'Integrante' as const }))
         ];
         const participantDocuments = [body.leaderDoc, ...requestedMembers.map((member: { documentId: string }) => member.documentId)].filter(Boolean);
@@ -138,15 +150,15 @@ api.post('/api/registrations', async (req, res) => {
             teamName: body.teamName,
             projectTitle: body.projectTitle,
             institutionNit,
-            institutionType: body.institutionType || 'Colegio / I.E.',
+            institutionType: 'Colegio / I.E.',
             city: body.city || 'Nobsa',
             department: body.department || 'Boyacá',
             leaderName: body.leaderName,
             leaderDoc: body.leaderDoc,
-            leaderEmail: body.leaderEmail,
-            leaderPhone: body.leaderPhone,
             mentorName: body.mentorName || '',
             mentorDoc: body.mentorDoc || '',
+            mentorEmail: body.mentorEmail,
+            mentorPhone: body.mentorPhone,
             members,
             projectDescription: body.projectDescription,
             technicalSpecs: body.technicalSpecs || '',

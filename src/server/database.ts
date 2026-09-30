@@ -72,6 +72,18 @@ const registrationValidator = {
     anyOf: [
       { required: ['institutionNit'] },
       { required: ['institution'] }
+    ],
+    oneOf: [
+      {
+        required: ['institutionNit', 'mentorName', 'mentorDoc', 'mentorEmail', 'mentorPhone'],
+        properties: {
+          institutionNit: { bsonType: 'string', pattern: '^[0-9]{12}$' },
+          institutionType: { enum: ['Colegio / I.E.'] },
+          mentorEmail: { bsonType: 'string', pattern: '^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\\.[a-zA-Z0-9-.]+$' },
+          mentorPhone: { bsonType: 'string', pattern: '^[0-9]{10}$' }
+        }
+      },
+      { required: ['leaderEmail', 'leaderPhone'] }
     ]
   }
 };
