@@ -3,12 +3,13 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
 import { RegistrationService } from '../../services/registration.service';
+import { BadgeDownloadComponent } from '../badge-download/badge-download';
 import { Registration, RegistrationStatus } from '../../models/registration.model';
 import { areCertificatesAvailable, CERTIFICATE_AVAILABILITY_MESSAGE } from '../../../shared/certificate-availability';
 
 @Component({
   selector: 'app-admin-panel',
-  imports: [CommonModule, FormsModule, MatIconModule],
+  imports: [CommonModule, FormsModule, MatIconModule, BadgeDownloadComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <section id="admin" class="py-20 relative bg-[#05060a] border-t border-[#00f3ff]/20">
@@ -75,6 +76,8 @@ import { areCertificatesAvailable, CERTIFICATE_AVAILABILITY_MESSAGE } from '../.
             </button>
           </div>
         </div>
+
+        <app-badge-download />
 
         <!-- KPI Metrics Grid -->
         <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
