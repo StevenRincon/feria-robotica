@@ -58,7 +58,7 @@ const registrationValidator = {
             id: { bsonType: 'string' },
             fullName: { bsonType: 'string' },
             documentId: { bsonType: 'string', pattern: '^[0-9]+$' },
-            role: { enum: ['Líder / Capitán', 'Integrante', 'Tutor / Asesor'] },
+            role: { enum: ['Líder / Capitán', 'Integrante', 'Tutor / Asesor', 'Docente / Profesor'] },
             email: { bsonType: 'string' },
             phone: { bsonType: 'string' }
           }
@@ -189,6 +189,15 @@ export async function updateRegistrationStatus(id: string, status: RegistrationS
   return registrations.findOneAndUpdate(
     { $or: [{ id }, { code: id }] },
     { $set: { status } },
+    { returnDocument: 'after' }
+  );
+}
+
+export async function updateRegistration(id: string, registration: Partial<Registration>): Promise<Registration | null> {
+  const registrations = await registrationsCollection();
+  return registrations.findOneAndUpdate(
+    { $or: [{ id }, { code: id }] },
+    { $set: registration },
     { returnDocument: 'after' }
   );
 }

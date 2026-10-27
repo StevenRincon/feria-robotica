@@ -230,6 +230,20 @@ export class RegistrationService {
     );
   }
 
+  updateRegistration(registration: Registration): Observable<Registration> {
+    return this.http.put<{ success: boolean; data: Registration }>(
+      `/api/registrations/${encodeURIComponent(registration.id)}`,
+      registration
+    ).pipe(
+      map(res => res.data),
+      tap(updated => {
+        this.registrations.update(items => items.map(item => item.id === updated.id ? updated : item));
+        this.currentRegistrationResult.update(item => item?.id === updated.id ? updated : item);
+        this.loadStats().subscribe();
+      })
+    );
+  }
+
   deleteRegistration(id: string): Observable<boolean> {
     return this.http.delete<{ success: boolean }>(`/api/registrations/${id}`).pipe(
       map(res => res.success),

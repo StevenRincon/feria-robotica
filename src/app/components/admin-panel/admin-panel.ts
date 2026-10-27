@@ -11,6 +11,22 @@ import { areCertificatesAvailable, CERTIFICATE_AVAILABILITY_MESSAGE } from '../.
   selector: 'app-admin-panel',
   imports: [CommonModule, FormsModule, MatIconModule, BadgeDownloadComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
+  styles: [`
+    .admin-edit-input {
+      display: block;
+      width: 100%;
+      padding: 0.65rem 0.75rem;
+      background: #05060a;
+      border: 1px solid rgb(0 243 255 / 30%);
+      color: white;
+      font: inherit;
+    }
+
+    .admin-edit-input:focus {
+      outline: none;
+      border-color: #00f3ff;
+    }
+  `],
   template: `
     <section id="admin" class="py-20 relative bg-[#05060a] border-t border-[#00f3ff]/20">
       @if (!isAuthenticated()) {
@@ -247,53 +263,179 @@ import { areCertificatesAvailable, CERTIFICATE_AVAILABILITY_MESSAGE } from '../.
                   <h3 class="text-2xl font-black text-white uppercase">{{ selectedDetail()?.teamName }}</h3>
                 </div>
 
-                <button (click)="selectedDetail.set(null)" type="button" class="p-2 text-gray-400 hover:text-white">
+                <button (click)="closeDetail()" type="button" class="p-2 text-gray-400 hover:text-white">
                   <mat-icon>close</mat-icon>
                 </button>
               </div>
 
-              <div class="space-y-3 text-xs font-mono text-gray-300">
-                <div><strong class="text-white uppercase">Proyecto:</strong> {{ selectedDetail()?.projectTitle }}</div>
-                <div><strong class="text-white uppercase">Categoría:</strong> {{ selectedDetail()?.categoryName }}</div>
-                <div><strong class="text-white uppercase">Código DANE de la institución:</strong> {{ selectedDetail()?.institutionNit || 'No registrado' }} ({{ selectedDetail()?.institutionType }})</div>
-                <div><strong class="text-white uppercase">Ubicación:</strong> {{ selectedDetail()?.city }}, {{ selectedDetail()?.department }}</div>
-                
-                <div class="pt-3 border-t border-[#00f3ff]/20">
-                  <strong class="text-[#00f3ff] uppercase">Descripción del Proyecto:</strong>
-                  <p class="mt-1 text-gray-300 leading-relaxed bg-[#05060a] p-3 border border-[#00f3ff]/30 font-sans">
-                    {{ selectedDetail()?.projectDescription }}
-                  </p>
-                </div>
+              @if (editingDetail) {
+                <form #editForm="ngForm" (ngSubmit)="saveEdit()" class="space-y-4 text-xs font-mono text-gray-300">
+                  <div class="grid sm:grid-cols-2 gap-3">
+                    <label class="space-y-1">Nombre del equipo
+                      <input name="teamName" required [(ngModel)]="editingDetail!.teamName" class="admin-edit-input" />
+                    </label>
+                    <label class="space-y-1">Nombre del proyecto
+                      <input name="projectTitle" required [(ngModel)]="editingDetail!.projectTitle" class="admin-edit-input" />
+                    </label>
+                    <label class="space-y-1">Categoría
+                      <select name="category" required [(ngModel)]="editingDetail!.category" class="admin-edit-input">
+                        <option value="automatizacion">Automatización electrónica o robótica</option>
+                        <option value="seguidores">Seguidores de línea</option>
+                        <option value="educativos">Proyectos para primaria</option>
+                      </select>
+                    </label>
+                    <label class="space-y-1">Tipo de institución
+                      <select name="institutionType" required [(ngModel)]="editingDetail!.institutionType" class="admin-edit-input">
+                        <option>Colegio / I.E.</option>
+                        <option>Universidad / SENA</option>
+                        <option>Club / Independiente</option>
+                        <option>Empresa / StartUp</option>
+                      </select>
+                    </label>
+                    <label class="space-y-1">Institución
+                      <input name="institution" [(ngModel)]="editingDetail!.institution" class="admin-edit-input" />
+                    </label>
+                    <label class="space-y-1">Código DANE / NIT
+                      <input name="institutionNit" required [(ngModel)]="editingDetail!.institutionNit" class="admin-edit-input" />
+                    </label>
+                    <label class="space-y-1">Ciudad
+                      <input name="city" required [(ngModel)]="editingDetail!.city" class="admin-edit-input" />
+                    </label>
+                    <label class="space-y-1">Departamento
+                      <input name="department" required [(ngModel)]="editingDetail!.department" class="admin-edit-input" />
+                    </label>
+                  </div>
 
-                @if (selectedDetail()?.technicalSpecs) {
-                  <div><strong class="text-white uppercase">Especificaciones Técnicas:</strong> {{ selectedDetail()?.technicalSpecs }}</div>
-                }
+                  <div class="pt-3 border-t border-[#00f3ff]/20">
+                    <h4 class="text-[#00f3ff] font-bold uppercase mb-3">Líder del proyecto</h4>
+                    <div class="grid sm:grid-cols-2 gap-3">
+                      <label class="space-y-1">Nombre
+                        <input name="leaderName" required [(ngModel)]="editingDetail!.leaderName" class="admin-edit-input" />
+                      </label>
+                      <label class="space-y-1">Documento
+                        <input name="leaderDoc" required [(ngModel)]="editingDetail!.leaderDoc" class="admin-edit-input" />
+                      </label>
+                      <label class="space-y-1">Correo
+                        <input name="leaderEmail" type="email" [(ngModel)]="editingDetail!.leaderEmail" class="admin-edit-input" />
+                      </label>
+                      <label class="space-y-1">Teléfono
+                        <input name="leaderPhone" [(ngModel)]="editingDetail!.leaderPhone" class="admin-edit-input" />
+                      </label>
+                    </div>
+                  </div>
 
-                @if (selectedDetail()?.spaceRequirements) {
-                  <div><strong class="text-white uppercase">Requerimientos de Espacio/Energía:</strong> {{ selectedDetail()?.spaceRequirements }}</div>
-                }
+                  <div class="pt-3 border-t border-[#00f3ff]/20">
+                    <h4 class="text-[#00f3ff] font-bold uppercase mb-3">Docente acompañante</h4>
+                    <div class="grid sm:grid-cols-2 gap-3">
+                      <label class="space-y-1">Nombre
+                        <input name="mentorName" required [(ngModel)]="editingDetail!.mentorName" class="admin-edit-input" />
+                      </label>
+                      <label class="space-y-1">Documento
+                        <input name="mentorDoc" required [(ngModel)]="editingDetail!.mentorDoc" class="admin-edit-input" />
+                      </label>
+                      <label class="space-y-1">Correo
+                        <input name="mentorEmail" type="email" required [(ngModel)]="editingDetail!.mentorEmail" class="admin-edit-input" />
+                      </label>
+                      <label class="space-y-1">Teléfono
+                        <input name="mentorPhone" required [(ngModel)]="editingDetail!.mentorPhone" class="admin-edit-input" />
+                      </label>
+                    </div>
+                  </div>
 
-                <div class="pt-3 border-t border-[#00f3ff]/20">
-                  <strong class="text-[#00f3ff] uppercase">Integrantes del Equipo:</strong>
-                  <div class="mt-2 space-y-1">
-                    @for (m of selectedDetail()?.members; track m.id) {
-                      <div class="p-2 bg-[#05060a] border border-[#00f3ff]/20 flex items-center justify-between">
-                        <span class="uppercase">{{ m.fullName }} ({{ m.role }})</span>
-                        <span class="text-gray-400">DOC: {{ m.documentId }}</span>
+                  <div class="pt-3 border-t border-[#00f3ff]/20">
+                    <div class="flex items-center justify-between gap-3">
+                      <h4 class="text-[#00f3ff] font-bold uppercase">Participantes</h4>
+                      <button type="button" (click)="addParticipant()" [disabled]="editingDetail!.members.length >= 2"
+                        class="px-3 py-1.5 border border-[#00f3ff]/30 text-[#00f3ff] disabled:text-gray-600 disabled:cursor-not-allowed">
+                        + Agregar participante
+                      </button>
+                    </div>
+                    @for (member of editingDetail!.members; track member.id; let i = $index) {
+                      <div class="grid sm:grid-cols-[1fr_1fr_auto] items-end gap-3 mt-3">
+                        <label class="space-y-1">Nombre
+                          <input [name]="'memberName' + i" required [(ngModel)]="member.fullName" class="admin-edit-input" />
+                        </label>
+                        <label class="space-y-1">Documento
+                          <input [name]="'memberDocument' + i" required [(ngModel)]="member.documentId" class="admin-edit-input" />
+                        </label>
+                        <button type="button" (click)="removeParticipant(i)"
+                          [disabled]="editingDetail!.members.length <= 1 || member.role === 'Líder / Capitán'"
+                          class="p-2 text-rose-400 disabled:text-gray-600 disabled:cursor-not-allowed" title="Eliminar participante">
+                          <mat-icon>delete</mat-icon>
+                        </button>
                       </div>
                     }
                   </div>
-                </div>
-              </div>
 
-              <div class="flex justify-end pt-4 border-t border-[#00f3ff]/20">
-                <button 
-                  (click)="selectedDetail.set(null)" 
-                  type="button" 
-                  class="px-5 py-2.5 bg-[#05060a] hover:bg-[#00f3ff] hover:text-black text-[#00f3ff] border border-[#00f3ff]/30 text-xs font-mono font-bold uppercase transition-colors">
-                  Cerrar
-                </button>
-              </div>
+                  <label class="block space-y-1 pt-3 border-t border-[#00f3ff]/20">Descripción del proyecto
+                    <textarea name="projectDescription" required rows="4" [(ngModel)]="editingDetail!.projectDescription" class="admin-edit-input"></textarea>
+                  </label>
+                  <label class="block space-y-1">Especificaciones técnicas
+                    <textarea name="technicalSpecs" rows="3" [(ngModel)]="editingDetail!.technicalSpecs" class="admin-edit-input"></textarea>
+                  </label>
+                  <label class="block space-y-1">Requerimientos de espacio o energía
+                    <textarea name="spaceRequirements" rows="3" [(ngModel)]="editingDetail!.spaceRequirements" class="admin-edit-input"></textarea>
+                  </label>
+
+                  @if (editError()) {
+                    <p class="text-rose-400">{{ editError() }}</p>
+                  }
+                  <div class="flex justify-end gap-2 pt-4 border-t border-[#00f3ff]/20">
+                    <button (click)="cancelEdit()" type="button" class="px-5 py-2.5 border border-gray-600 text-gray-300 text-xs font-bold uppercase">Cancelar</button>
+                    <button type="submit" [disabled]="!editForm.valid || savingEdit()"
+                      class="px-5 py-2.5 bg-[#00f3ff] text-black text-xs font-bold uppercase disabled:opacity-50">
+                      {{ savingEdit() ? 'Guardando...' : 'Guardar cambios' }}
+                    </button>
+                  </div>
+                </form>
+              } @else {
+                <div class="space-y-3 text-xs font-mono text-gray-300">
+                  <div><strong class="text-white uppercase">Proyecto:</strong> {{ selectedDetail()?.projectTitle }}</div>
+                  <div><strong class="text-white uppercase">Categoría:</strong> {{ selectedDetail()?.categoryName }}</div>
+                  <div><strong class="text-white uppercase">Institución:</strong> {{ selectedDetail()?.institution || 'No registrada' }}</div>
+                  <div><strong class="text-white uppercase">Código DANE de la institución:</strong> {{ selectedDetail()?.institutionNit || 'No registrado' }} ({{ selectedDetail()?.institutionType }})</div>
+                  <div><strong class="text-white uppercase">Ubicación:</strong> {{ selectedDetail()?.city }}, {{ selectedDetail()?.department }}</div>
+                  <div><strong class="text-white uppercase">Líder:</strong> {{ selectedDetail()?.leaderName }} (DOC: {{ selectedDetail()?.leaderDoc }})</div>
+                  <div><strong class="text-white uppercase">Docente:</strong> {{ selectedDetail()?.mentorName }} (DOC: {{ selectedDetail()?.mentorDoc }}) · {{ selectedDetail()?.mentorEmail }} · {{ selectedDetail()?.mentorPhone }}</div>
+
+                  <div class="pt-3 border-t border-[#00f3ff]/20">
+                    <strong class="text-[#00f3ff] uppercase">Descripción del Proyecto:</strong>
+                    <p class="mt-1 text-gray-300 leading-relaxed bg-[#05060a] p-3 border border-[#00f3ff]/30 font-sans">
+                      {{ selectedDetail()?.projectDescription }}
+                    </p>
+                  </div>
+
+                  @if (selectedDetail()?.technicalSpecs) {
+                    <div><strong class="text-white uppercase">Especificaciones Técnicas:</strong> {{ selectedDetail()?.technicalSpecs }}</div>
+                  }
+                  @if (selectedDetail()?.spaceRequirements) {
+                    <div><strong class="text-white uppercase">Requerimientos de Espacio/Energía:</strong> {{ selectedDetail()?.spaceRequirements }}</div>
+                  }
+
+                  <div class="pt-3 border-t border-[#00f3ff]/20">
+                    <strong class="text-[#00f3ff] uppercase">Integrantes del Equipo:</strong>
+                    <div class="mt-2 space-y-1">
+                      @for (m of selectedDetail()?.members; track m.id) {
+                        <div class="p-2 bg-[#05060a] border border-[#00f3ff]/20 flex items-center justify-between">
+                          <span class="uppercase">{{ m.fullName }} ({{ m.role }})</span>
+                          <span class="text-gray-400">DOC: {{ m.documentId }}</span>
+                        </div>
+                      }
+                    </div>
+                  </div>
+                </div>
+
+                <div class="flex justify-end gap-2 pt-4 border-t border-[#00f3ff]/20">
+                  <button (click)="startEdit()" type="button"
+                    class="px-5 py-2.5 bg-[#00f3ff] text-black text-xs font-mono font-bold uppercase transition-colors flex items-center gap-2">
+                    <mat-icon class="text-base">edit</mat-icon> Editar información
+                  </button>
+                  <button (click)="closeDetail()" type="button"
+                    class="px-5 py-2.5 bg-[#05060a] hover:bg-[#00f3ff] hover:text-black text-[#00f3ff] border border-[#00f3ff]/30 text-xs font-mono font-bold uppercase transition-colors">
+                    Cerrar
+                  </button>
+                </div>
+              }
 
             </div>
           </div>
@@ -320,6 +462,9 @@ export class AdminPanelComponent implements OnDestroy {
   isAuthenticated = signal(false);
   authenticationError = signal(false);
   selectedDetail = signal<Registration | null>(null);
+  editingDetail: Registration | null = null;
+  savingEdit = signal(false);
+  editError = signal('');
 
   authenticate(): void {
     this.isAuthenticated.set(this.password === this.testPassword);
@@ -330,6 +475,7 @@ export class AdminPanelComponent implements OnDestroy {
       this.sessionTimeoutId = setTimeout(() => {
         this.isAuthenticated.set(false);
         this.selectedDetail.set(null);
+        this.editingDetail = null;
         this.sessionTimeoutId = null;
       }, this.sessionDurationMs);
       this.regService.loadRegistrations(this.categoryFilter, this.searchFilter).subscribe();
@@ -368,6 +514,66 @@ export class AdminPanelComponent implements OnDestroy {
 
   openDetailModal(item: Registration): void {
     this.selectedDetail.set(item);
+  }
+
+  startEdit(): void {
+    const registration = this.selectedDetail();
+    if (!registration) return;
+    this.editingDetail = {
+      ...registration,
+      members: registration.members.map(member => ({ ...member }))
+    };
+    this.editError.set('');
+  }
+
+  addParticipant(): void {
+    const draft = this.editingDetail;
+    if (!draft || draft.members.length >= 2) return;
+    draft.members.push({
+      id: `member-${Date.now()}`,
+      fullName: '',
+      documentId: '',
+      role: 'Integrante'
+    });
+    this.editingDetail = { ...draft };
+  }
+
+  removeParticipant(index: number): void {
+    const draft = this.editingDetail;
+    if (!draft || draft.members.length <= 1 || draft.members[index]?.role === 'Líder / Capitán') return;
+    draft.members.splice(index, 1);
+    this.editingDetail = { ...draft };
+  }
+
+  cancelEdit(): void {
+    this.editingDetail = null;
+    this.editError.set('');
+  }
+
+  closeDetail(): void {
+    this.cancelEdit();
+    this.selectedDetail.set(null);
+  }
+
+  saveEdit(): void {
+    const draft = this.editingDetail;
+    if (!draft || this.savingEdit()) return;
+
+    this.savingEdit.set(true);
+    this.editError.set('');
+    this.regService.updateRegistration(draft).subscribe({
+      next: updated => {
+        this.selectedDetail.set(updated);
+        this.editingDetail = null;
+        this.savingEdit.set(false);
+        this.regService.loadRegistrations(this.categoryFilter, this.searchFilter).subscribe();
+      },
+      error: error => {
+        this.editError.set(error.error?.message || 'No fue posible guardar los cambios. Intenta nuevamente.');
+        this.savingEdit.set(false);
+        console.error('Error actualizando información del proyecto:', error);
+      }
+    });
   }
 
   exportToCsv(): void {
