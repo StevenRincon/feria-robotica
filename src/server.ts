@@ -513,7 +513,7 @@ app.get('/api/stats', async (_req, res) => {
   };
 
   registrations.forEach(r => {
-    totalParticipants += (r.members ? r.members.length : 1);
+    totalParticipants += (r.members ? r.members.length : 1) + Number(Boolean(r.mentorName));
     municipalities.add(r.city.toLowerCase().trim());
     if (r.category in byCategory) {
       byCategory[r.category]++;

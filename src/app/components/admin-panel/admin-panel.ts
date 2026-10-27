@@ -122,6 +122,59 @@ import { areCertificatesAvailable, CERTIFICATE_AVAILABILITY_MESSAGE } from '../.
           </div>
         </div>
 
+        <section class="bg-[#11141d] border border-[#00f3ff]/30 p-5 sm:p-6 mb-8">
+          <div class="flex items-center gap-2 mb-5">
+            <mat-icon class="text-[#00f3ff]">analytics</mat-icon>
+            <h3 class="text-sm font-mono font-bold text-white uppercase tracking-widest">Panel de estadísticas</h3>
+          </div>
+          <div class="grid md:grid-cols-2 gap-6">
+            <div>
+              <h4 class="text-xs font-mono font-bold text-gray-400 uppercase mb-4">Proyectos por categoría</h4>
+              <div class="space-y-4">
+                <div>
+                  <div class="flex justify-between gap-3 text-xs font-mono mb-1">
+                    <span class="text-gray-200">Automatización electrónica</span>
+                    <span class="text-[#00f3ff]">{{ stats()?.byCategory?.automatizacion || 0 }}</span>
+                  </div>
+                  <div class="h-2 bg-[#05060a]"><div class="h-full bg-[#00f3ff]" [style.width.%]="categoryPercentage('automatizacion')"></div></div>
+                </div>
+                <div>
+                  <div class="flex justify-between gap-3 text-xs font-mono mb-1">
+                    <span class="text-gray-200">Seguidores de línea</span>
+                    <span class="text-amber-400">{{ stats()?.byCategory?.seguidores || 0 }}</span>
+                  </div>
+                  <div class="h-2 bg-[#05060a]"><div class="h-full bg-amber-400" [style.width.%]="categoryPercentage('seguidores')"></div></div>
+                </div>
+                <div>
+                  <div class="flex justify-between gap-3 text-xs font-mono mb-1">
+                    <span class="text-gray-200">Proyectos para primaria</span>
+                    <span class="text-emerald-400">{{ stats()?.byCategory?.educativos || 0 }}</span>
+                  </div>
+                  <div class="h-2 bg-[#05060a]"><div class="h-full bg-emerald-400" [style.width.%]="categoryPercentage('educativos')"></div></div>
+                </div>
+              </div>
+            </div>
+            <div>
+              <h4 class="text-xs font-mono font-bold text-gray-400 uppercase mb-4">Proyectos por estado</h4>
+              <div class="grid grid-cols-3 gap-3">
+                <div class="p-3 bg-[#05060a] border border-[#00f3ff]/20">
+                  <div class="text-[10px] font-mono text-gray-500 uppercase">Aprobados</div>
+                  <div class="text-2xl font-mono font-black text-sky-400 mt-1">{{ stats()?.byStatus?.aprobado || 0 }}</div>
+                </div>
+                <div class="p-3 bg-[#05060a] border border-[#00f3ff]/20">
+                  <div class="text-[10px] font-mono text-gray-500 uppercase">Confirmados</div>
+                  <div class="text-2xl font-mono font-black text-emerald-400 mt-1">{{ stats()?.byStatus?.confirmado || 0 }}</div>
+                </div>
+                <div class="p-3 bg-[#05060a] border border-[#00f3ff]/20">
+                  <div class="text-[10px] font-mono text-gray-500 uppercase">Pendientes / revisión</div>
+                  <div class="text-2xl font-mono font-black text-amber-400 mt-1">{{ stats()?.byStatus?.pendiente || 0 }}</div>
+                </div>
+              </div>
+              <p class="text-[10px] font-mono text-gray-500 mt-3">Los proyectos en estado «En revisión» se incluyen en pendientes.</p>
+            </div>
+          </div>
+        </section>
+
         <!-- Search & Category Filters -->
         <div class="bg-[#11141d] p-4 sm:p-6 border border-[#00f3ff]/30 mb-6">
           <div class="grid sm:grid-cols-3 gap-4">
@@ -291,12 +344,6 @@ import { areCertificatesAvailable, CERTIFICATE_AVAILABILITY_MESSAGE } from '../.
                         <option>Club / Independiente</option>
                         <option>Empresa / StartUp</option>
                       </select>
-                    </label>
-                    <label class="space-y-1">Institución
-                      <input name="institution" [(ngModel)]="editingDetail!.institution" class="admin-edit-input" />
-                    </label>
-                    <label class="space-y-1">Código DANE / NIT
-                      <input name="institutionNit" required [(ngModel)]="editingDetail!.institutionNit" class="admin-edit-input" />
                     </label>
                     <label class="space-y-1">Ciudad
                       <input name="city" required [(ngModel)]="editingDetail!.city" class="admin-edit-input" />
@@ -514,6 +561,12 @@ export class AdminPanelComponent implements OnDestroy {
 
   openDetailModal(item: Registration): void {
     this.selectedDetail.set(item);
+  }
+
+  categoryPercentage(category: 'automatizacion' | 'seguidores' | 'educativos'): number {
+    const stats = this.stats();
+    if (!stats?.totalTeams) return 0;
+    return Math.round((stats.byCategory[category] / stats.totalTeams) * 100);
   }
 
   startEdit(): void {

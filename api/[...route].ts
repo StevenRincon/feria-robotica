@@ -11,6 +11,7 @@ import {
     findRegistrationByCodeOrDocument,
     hasDuplicateParticipantDocuments,
     registrationsCollection,
+    updateRegistration,
     updateRegistrationStatus,
 } from '../src/server/database.js';
 
@@ -189,6 +190,97 @@ api.put('/api/registrations/:id/status', async (req, res) => {
     }
 });
 
+api.put('/api/registrations/:id', async (req, res) => {
+    try {
+        const body = req.body as Partial<Registration>;
+        const validCategories = ['automatizacion', 'seguidores', 'educativos'];
+        const validInstitutionTypes = ['Colegio / I.E.', 'Universidad / SENA', 'Club / Independiente', 'Empresa / StartUp'];
+        const validRoles = ['Líder / Capitán', 'Integrante', 'Tutor / Asesor', 'Docente / Profesor'];
+        const emailPattern = /^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$/;
+        const requiredTextFields: Array<keyof Registration> = [
+            'teamName', 'projectTitle', 'institutionType', 'city', 'department',
+            'leaderName', 'leaderDoc', 'mentorName', 'mentorDoc', 'mentorEmail',
+            'mentorPhone', 'projectDescription'
+        ];
+
+        if (!body || requiredTextFields.some(field => typeof body[field] !== 'string' || !String(body[field]).trim())) {
+            return res.status(400).json({ success: false, message: 'Completa todos los campos obligatorios del proyecto, líder y docente.' });
+        }
+        if (!validCategories.includes(String(body.category)) || !validInstitutionTypes.includes(String(body.institutionType))) {
+            return res.status(400).json({ success: false, message: 'La categoría o el tipo de institución no son válidos.' });
+        }
+
+        const institutionNit = String(body.institutionNit || '').trim();
+        if (!/^(?:\d{9,10}|\d{12})$/.test(institutionNit)) {
+            return res.status(400).json({ success: false, message: 'El Código DANE debe contener 9, 10 o 12 dígitos numéricos.' });
+        }
+        if (!/^\d+$/.test(String(body.leaderDoc)) || !/^\d+$/.test(String(body.mentorDoc))) {
+            return res.status(400).json({ success: false, message: 'Los documentos del líder y docente deben contener únicamente números.' });
+        }
+        if (!emailPattern.test(String(body.mentorEmail)) || !/^\d{10}$/.test(String(body.mentorPhone))) {
+            return res.status(400).json({ success: false, message: 'Verifica el correo y el teléfono de contacto del docente.' });
+        }
+        const schoolRegistrationWithDane = body.institutionType === 'Colegio / I.E.' && /^\d{12}$/.test(institutionNit);
+        const registrationWithLeaderContact = Boolean(String(body.leaderEmail || '').trim() && String(body.leaderPhone || '').trim());
+        if (!schoolRegistrationWithDane && !registrationWithLeaderContact) {
+            return res.status(400).json({ success: false, message: 'Para colegios registra un Código DANE de 12 dígitos; para otras instituciones registra correo y teléfono del líder.' });
+        }
+
+        const members = body.members;
+        if (!Array.isArray(members) || members.length < 1 || members.length > 2
+            || members.some(member => !member.fullName?.trim() || !/^\d+$/.test(member.documentId)
+                || !validRoles.includes(member.role))
+            || members.filter(member => member.role === 'Líder / Capitán').length !== 1) {
+            return res.status(400).json({ success: false, message: 'Registra entre uno y dos participantes con nombre, documento y rol válidos.' });
+        }
+
+        const leaderName = String(body.leaderName).trim();
+        const leaderDoc = String(body.leaderDoc).trim();
+        const normalizedMembers = members.map(member => member.role === 'Líder / Capitán'
+            ? { ...member, fullName: leaderName, documentId: leaderDoc }
+            : { ...member, fullName: member.fullName.trim(), documentId: member.documentId.trim() });
+        const participantDocuments = normalizedMembers.map(member => member.documentId);
+        if (new Set(participantDocuments).size !== participantDocuments.length) {
+            return res.status(400).json({ success: false, message: 'Los documentos del líder y los participantes no se pueden repetir.' });
+        }
+        if (await hasDuplicateParticipantDocuments([...new Set(participantDocuments)], req.params.id)) {
+            return res.status(409).json({ success: false, message: 'Uno de los documentos ya está registrado en otro proyecto.' });
+        }
+
+        const category = body.category!;
+        const changes: Partial<Registration> = {
+            teamName: String(body.teamName).trim(),
+            projectTitle: String(body.projectTitle).trim(),
+            category,
+            categoryName: getCategoryName(category),
+            institutionNit,
+            institution: String(body.institution || '').trim(),
+            institutionType: body.institutionType!,
+            city: String(body.city).trim(),
+            department: String(body.department).trim(),
+            leaderName,
+            leaderDoc,
+            leaderEmail: String(body.leaderEmail || '').trim(),
+            leaderPhone: String(body.leaderPhone || '').trim(),
+            mentorName: String(body.mentorName).trim(),
+            mentorDoc: String(body.mentorDoc).trim(),
+            mentorEmail: String(body.mentorEmail).trim(),
+            mentorPhone: String(body.mentorPhone).trim(),
+            members: normalizedMembers,
+            projectDescription: String(body.projectDescription).trim(),
+            technicalSpecs: String(body.technicalSpecs || '').trim(),
+            spaceRequirements: String(body.spaceRequirements || '').trim()
+        };
+
+        const item = await updateRegistration(req.params.id, changes);
+        if (!item) return res.status(404).json({ success: false, message: 'Inscripción no encontrada.' });
+        return res.json({ success: true, message: 'Información del proyecto actualizada correctamente.', data: item });
+    } catch (error) {
+        console.error('Error actualizando información del proyecto:', error);
+        return res.status(500).json({ success: false, message: 'No fue posible actualizar la información del proyecto.' });
+    }
+});
+
 api.delete('/api/registrations/:id', async (req, res) => {
     try {
         const result = await (await registrationsCollection()).deleteOne({ $or: [{ id: req.params.id }, { code: req.params.id }] });
@@ -213,7 +305,7 @@ api.get('/api/stats', async (_req, res) => {
             else if (registration.status === 'Confirmado') byStatus.confirmado++;
             else byStatus.pendiente++;
         });
-        return res.json({ success: true, data: { totalTeams: registrations.length, totalParticipants: registrations.reduce((total, registration) => total + registration.members.length, 0), totalMunicipalities: municipalities.size, byCategory, byStatus } });
+        return res.json({ success: true, data: { totalTeams: registrations.length, totalParticipants: registrations.reduce((total, registration) => total + registration.members.length + Number(Boolean(registration.mentorName)), 0), totalMunicipalities: municipalities.size, byCategory, byStatus } });
     } catch (error) {
         console.error('Error consultando estadísticas:', error);
         return res.status(503).json({ success: false, message: 'La base de datos no está disponible.' });
