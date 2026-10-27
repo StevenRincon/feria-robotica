@@ -241,6 +241,24 @@ export class BadgeDownloadComponent {
     }
     pdf.text(name, x + 22.5, y + 56.3, { align: 'center', maxWidth: 42 });
 
+    const projectTitle = registration.projectTitle.trim();
+    let projectFontSize = 5;
+    let projectLines: string[] = [];
+    do {
+      pdf.setFontSize(projectFontSize);
+      projectLines = pdf.splitTextToSize(projectTitle, 43);
+      if (projectLines.length <= 2 || projectFontSize <= 3) break;
+      projectFontSize -= 0.5;
+    } while (true);
+    pdf.setFontSize(projectFontSize);
+    pdf.setTextColor('#17333d');
+    pdf.text(projectLines.slice(0, 2), x + 22.5, y + 60.4, {
+      align: 'center',
+      lineHeightFactor: 0.9,
+      maxWidth: 43
+    });
+
+    pdf.setTextColor('#111111');
     pdf.setFontSize(9);
     pdf.text(studentDocument, x + 20, y + 82.4, { align: 'center', maxWidth: 37 });
 
