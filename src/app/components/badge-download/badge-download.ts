@@ -177,18 +177,13 @@ export class BadgeDownloadComponent {
     this.badgeError.set('');
     try {
       const { jsPDF } = await import('jspdf');
-      const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'letter' });
-      const badgeWidth = 100;
-      const badgeHeight = 120;
-      const positions = [
-        [5.3, 15], [110.6, 15], [5.3, 141.4], [110.6, 141.4]
-      ];
+      const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: [100, 120], compress: true });
+      await this.loadMontserratFonts(pdf);
       const template = await this.loadBadgeTemplate();
 
       students.forEach(({ registration, member }, index) => {
-        if (index > 0 && index % positions.length === 0) pdf.addPage();
-        const [x, y] = positions[index % positions.length];
-        this.drawBadge(pdf, x, y, badgeWidth, badgeHeight, registration, member.fullName, member.documentId, template);
+        if (index > 0) pdf.addPage([100, 120], 'portrait');
+        this.drawBadge(pdf, registration, member.fullName, member.documentId, template);
       });
 
       pdf.save(`Escarapelas_Feria_Robotica_Nobsa_${this.institutionCode()}.pdf`);
@@ -201,7 +196,7 @@ export class BadgeDownloadComponent {
   }
 
   private async loadBadgeTemplate(): Promise<string> {
-    const response = await fetch('/escarapela-plantilla.jpg');
+    const response = await fetch('/escarapela-plantilla.jpeg');
     if (!response.ok) {
       throw new Error(`No fue posible cargar la plantilla de escarapela (${response.status}).`);
     }
@@ -217,53 +212,88 @@ export class BadgeDownloadComponent {
     });
   }
 
+  private async loadMontserratFonts(pdf: import('jspdf').jsPDF): Promise<void> {
+    await Promise.all([
+      this.registerMontserratFont(pdf, 'Montserrat-Regular.ttf', 'normal'),
+      this.registerMontserratFont(pdf, 'Montserrat-Bold.ttf', 'bold')
+    ]);
+  }
+
+  private async registerMontserratFont(pdf: import('jspdf').jsPDF, fileName: string, style: 'normal' | 'bold'): Promise<void> {
+    const response = await fetch(`/fonts/${fileName}`);
+    if (!response.ok) throw new Error(`No fue posible cargar la fuente Montserrat ${style}.`);
+
+    const bytes = new Uint8Array(await response.arrayBuffer());
+    let binary = '';
+    const chunkSize = 0x8000;
+    for (let offset = 0; offset < bytes.length; offset += chunkSize) {
+      binary += String.fromCharCode(...bytes.subarray(offset, offset + chunkSize));
+    }
+
+    pdf.addFileToVFS(fileName, btoa(binary));
+    pdf.addFont(fileName, 'Montserrat', style);
+  }
+
   private drawBadge(
     pdf: import('jspdf').jsPDF,
-    x: number,
-    y: number,
-    width: number,
-    height: number,
     registration: Registration,
     studentName: string,
     studentDocument: string,
     template: string
   ): void {
-    pdf.addImage(template, 'JPEG', x, y, width, height);
-    pdf.setFont('helvetica', 'bold');
+    pdf.addImage(template, 'JPEG', 0, 0, 100, 120);
+    pdf.setFont('Montserrat', 'bold');
     pdf.setTextColor('#111111');
 
     const name = studentName.trim();
-    let nameFontSize = 11;
-    pdf.setFontSize(nameFontSize);
-    while (nameFontSize > 6 && pdf.getTextWidth(name) > 40) {
-      nameFontSize -= 0.5;
-      pdf.setFontSize(nameFontSize);
-    }
-    pdf.text(name, x + 22.5, y + 56.3, { align: 'center', maxWidth: 42 });
+    const nameLayout = this.fitText(pdf, name, 42, 12, 7.5, 2);
+    pdf.setFontSize(nameLayout.fontSize);
+    pdf.setTextColor('#111111');
+    pdf.text(nameLayout.lines, 22.5, nameLayout.lines.length > 1 ? 52.5 : 57, {
+      align: 'center',
+      lineHeightFactor: 1.05,
+      maxWidth: 42
+    });
 
     const projectTitle = registration.projectTitle.trim();
-    let projectFontSize = 5;
-    let projectLines: string[] = [];
-    do {
-      pdf.setFontSize(projectFontSize);
-      projectLines = pdf.splitTextToSize(projectTitle, 43);
-      if (projectLines.length <= 2 || projectFontSize <= 3) break;
-      projectFontSize -= 0.5;
-    } while (true);
-    pdf.setFontSize(projectFontSize);
+    const projectLayout = this.fitText(pdf, projectTitle, 42, 8, 5, 2);
+    pdf.setFont('Montserrat', 'normal');
+    pdf.setFontSize(projectLayout.fontSize);
     pdf.setTextColor('#17333d');
-    pdf.text(projectLines.slice(0, 2), x + 22.5, y + 60.4, {
+    pdf.text(projectLayout.lines, 22.5, 65, {
       align: 'center',
-      lineHeightFactor: 0.9,
-      maxWidth: 43
+      lineHeightFactor: 1.05,
+      maxWidth: 42
     });
 
     pdf.setTextColor('#111111');
-    pdf.setFontSize(9);
-    pdf.text(studentDocument, x + 20, y + 82.4, { align: 'center', maxWidth: 37 });
+    const documentLayout = this.fitText(pdf, studentDocument.trim(), 42, 9.5, 7, 1);
+    pdf.setFontSize(documentLayout.fontSize);
+    pdf.text(documentLayout.lines[0] || '', 22.5, 81.5, { align: 'center', maxWidth: 42 });
 
-    pdf.setFontSize(5.5);
+    const codeLayout = this.fitText(pdf, registration.code.trim(), 42, 7, 5.5, 1);
+    pdf.setFontSize(codeLayout.fontSize);
     pdf.setTextColor('#17333d');
-    pdf.text(`Inscripción: ${registration.code}`, x + 22, y + 87.6, { align: 'center', maxWidth: 40 });
+    pdf.text(codeLayout.lines[0] || '', 22.5, 87.5, { align: 'center', maxWidth: 42 });
+  }
+
+  private fitText(
+    pdf: import('jspdf').jsPDF,
+    value: string,
+    maxWidth: number,
+    initialFontSize: number,
+    minFontSize: number,
+    maxLines: number
+  ): { fontSize: number; lines: string[] } {
+    let fontSize = initialFontSize;
+    let lines: string[];
+    do {
+      pdf.setFontSize(fontSize);
+      lines = pdf.splitTextToSize(value, maxWidth) as string[];
+      if (lines.length <= maxLines || fontSize <= minFontSize) break;
+      fontSize = Math.max(minFontSize, fontSize - 0.5);
+    } while (true);
+
+    return { fontSize, lines: lines.slice(0, maxLines) };
   }
 }
