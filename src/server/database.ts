@@ -10,6 +10,7 @@ const configuredDnsServers = process.env['MONGODB_DNS_SERVERS']
   .map(server => server.trim())
   .filter(Boolean);
 const collectionName = 'registrations';
+const institutionWithExpandedQuota = '215491000348';
 
 if (configuredDnsServers?.length) {
   dns.setServers(configuredDnsServers);
@@ -173,6 +174,11 @@ export async function countInstitutionCategoryRegistrations(institutionNit: stri
     institutionNit: { $regex: `^${escapedInstitutionNit}$` },
     category
   });
+}
+
+export function getInstitutionCategoryRegistrationLimit(institutionNit: string, category: Registration['category']): number {
+  if (institutionNit !== institutionWithExpandedQuota) return 2;
+  return category === 'seguidores' ? 4 : 5;
 }
 
 export async function findInstitutionCategoryProjects(institutionNit: string, category: Registration['category']): Promise<Array<Pick<Registration, 'teamName' | 'projectTitle'>>> {

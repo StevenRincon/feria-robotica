@@ -8,6 +8,7 @@ import { areCertificatesAvailable, CERTIFICATE_AVAILABILITY_MESSAGE } from '../s
 import {
     countInstitutionCategoryRegistrations,
     findInstitutionCategoryProjects,
+    getInstitutionCategoryRegistrationLimit,
     findRegistrationByCodeOrDocument,
     hasDuplicateParticipantDocuments,
     registrationsCollection,
@@ -115,11 +116,12 @@ api.post('/api/registrations', async (req, res) => {
         if (!['automatizacion', 'seguidores', 'educativos'].includes(body.category)) {
             return res.status(400).json({ success: false, message: 'La categoría de inscripción no es válida.' });
         }
-        if (await countInstitutionCategoryRegistrations(institutionNit, body.category) >= 2) {
+        const categoryLimit = getInstitutionCategoryRegistrationLimit(institutionNit, body.category);
+        if (await countInstitutionCategoryRegistrations(institutionNit, body.category) >= categoryLimit) {
             const projects = await findInstitutionCategoryProjects(institutionNit, body.category);
             return res.status(409).json({
                 success: false,
-                message: 'Esta institución ya tiene el máximo de dos proyectos inscritos en esta categoría.',
+                message: `Esta institución ya alcanzó el máximo de ${categoryLimit} proyectos inscritos en esta categoría.`,
                 projects
             });
         }

@@ -11,6 +11,7 @@ import { GoogleGenAI } from '@google/genai';
 import {
   countInstitutionCategoryRegistrations,
   findInstitutionCategoryProjects,
+  getInstitutionCategoryRegistrationLimit,
   findRegistrationByCodeOrDocument,
   hasDuplicateParticipantDocuments,
   registrationsCollection,
@@ -304,11 +305,12 @@ app.post('/api/registrations', async (req, res) => {
     }
 
     const institutionCategoryCount = await countInstitutionCategoryRegistrations(institutionNit, body.category);
-    if (institutionCategoryCount >= 2) {
+    const categoryLimit = getInstitutionCategoryRegistrationLimit(institutionNit, body.category);
+    if (institutionCategoryCount >= categoryLimit) {
       const projects = await findInstitutionCategoryProjects(institutionNit, body.category);
       return res.status(409).json({
         success: false,
-        message: 'Esta institución ya tiene el máximo de dos proyectos inscritos en esta categoría.',
+        message: `Esta institución ya alcanzó el máximo de ${categoryLimit} proyectos inscritos en esta categoría.`,
         projects
       });
     }
