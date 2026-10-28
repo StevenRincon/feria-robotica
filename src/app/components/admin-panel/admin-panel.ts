@@ -3,13 +3,12 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
 import { RegistrationService } from '../../services/registration.service';
-import { BadgeDownloadComponent } from '../badge-download/badge-download';
 import { Registration, RegistrationStatus } from '../../models/registration.model';
 import { areCertificatesAvailable, CERTIFICATE_AVAILABILITY_MESSAGE } from '../../../shared/certificate-availability';
 
 @Component({
   selector: 'app-admin-panel',
-  imports: [CommonModule, FormsModule, MatIconModule, BadgeDownloadComponent],
+  imports: [CommonModule, FormsModule, MatIconModule],
   changeDetection: ChangeDetectionStrategy.OnPush,
   styles: [`
     .admin-edit-input {
@@ -93,10 +92,8 @@ import { areCertificatesAvailable, CERTIFICATE_AVAILABILITY_MESSAGE } from '../.
           </div>
         </div>
 
-        <app-badge-download />
-
         <!-- KPI Metrics Grid -->
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-8">
           <div class="p-5 bg-[#11141d] border border-[#00f3ff]/30">
             <div class="text-xs font-mono font-bold text-gray-400 uppercase">Equipos Inscritos</div>
             <div class="font-mono font-black text-4xl text-[#00f3ff] mt-2">{{ stats()?.totalTeams || 0 }}</div>
@@ -104,9 +101,21 @@ import { areCertificatesAvailable, CERTIFICATE_AVAILABILITY_MESSAGE } from '../.
           </div>
 
           <div class="p-5 bg-[#11141d] border border-[#00f3ff]/30">
-            <div class="text-xs font-mono font-bold text-gray-400 uppercase">Total Participantes</div>
+            <div class="text-xs font-mono font-bold text-gray-400 uppercase">Total global</div>
             <div class="font-mono font-black text-4xl text-emerald-400 mt-2">{{ stats()?.totalParticipants || 0 }}</div>
-            <div class="text-[10px] font-mono text-gray-500 mt-1 uppercase">Estudiantes y docentes</div>
+            <div class="text-[10px] font-mono text-gray-500 mt-1 uppercase">Personas únicas</div>
+          </div>
+
+          <div class="p-5 bg-[#11141d] border border-[#00f3ff]/30">
+            <div class="text-xs font-mono font-bold text-gray-400 uppercase">Total estudiantes</div>
+            <div class="font-mono font-black text-4xl text-violet-400 mt-2">{{ stats()?.totalStudents || 0 }}</div>
+            <div class="text-[10px] font-mono text-gray-500 mt-1 uppercase">Documentos únicos</div>
+          </div>
+
+          <div class="p-5 bg-[#11141d] border border-[#00f3ff]/30">
+            <div class="text-xs font-mono font-bold text-gray-400 uppercase">Total docentes</div>
+            <div class="font-mono font-black text-4xl text-cyan-400 mt-2">{{ stats()?.totalTeachers || 0 }}</div>
+            <div class="text-[10px] font-mono text-gray-500 mt-1 uppercase">Documentos únicos</div>
           </div>
 
           <div class="p-5 bg-[#11141d] border border-[#00f3ff]/30">

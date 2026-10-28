@@ -59,6 +59,8 @@ export interface CategoryInfo {
 export interface RegistrationStats {
   totalTeams: number;
   totalParticipants: number;
+  totalStudents: number;
+  totalTeachers: number;
   totalMunicipalities: number;
   byCategory: {
     automatizacion: number;

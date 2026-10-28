@@ -499,7 +499,9 @@ app.delete('/api/registrations/:id', async (req, res) => {
 app.get('/api/stats', async (_req, res) => {
   const registrations = await (await registrationsCollection()).find().toArray();
   const totalTeams = registrations.length;
-  let totalParticipants = 0;
+  const studentDocuments = new Set<string>();
+  const teacherDocuments = new Set<string>();
+  const participantDocuments = new Set<string>();
   const municipalities = new Set<string>();
 
   const byCategory = {
@@ -515,7 +517,27 @@ app.get('/api/stats', async (_req, res) => {
   };
 
   registrations.forEach(r => {
-    totalParticipants += (r.members ? r.members.length : 1) + Number(Boolean(r.mentorName));
+    const leaderDoc = r.leaderDoc.trim();
+    if (leaderDoc) {
+      studentDocuments.add(leaderDoc);
+      participantDocuments.add(leaderDoc);
+    }
+    for (const member of r.members || []) {
+      const documentId = member.documentId.trim();
+      if (!documentId) continue;
+      if (member.role === 'Líder / Capitán' || member.role === 'Integrante') {
+        studentDocuments.add(documentId);
+        participantDocuments.add(documentId);
+      } else if (member.role === 'Docente / Profesor') {
+        teacherDocuments.add(documentId);
+        participantDocuments.add(documentId);
+      }
+    }
+    const mentorDoc = r.mentorDoc?.trim();
+    if (mentorDoc) {
+      teacherDocuments.add(mentorDoc);
+      participantDocuments.add(mentorDoc);
+    }
     municipalities.add(r.city.toLowerCase().trim());
     if (r.category in byCategory) {
       byCategory[r.category]++;
@@ -529,7 +551,9 @@ app.get('/api/stats', async (_req, res) => {
     success: true,
     data: {
       totalTeams,
-      totalParticipants,
+      totalParticipants: participantDocuments.size,
+      totalStudents: studentDocuments.size,
+      totalTeachers: teacherDocuments.size,
       totalMunicipalities: municipalities.size,
       byCategory,
       byStatus

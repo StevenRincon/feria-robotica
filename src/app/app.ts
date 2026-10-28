@@ -4,6 +4,7 @@ import { HeroComponent } from './components/hero/hero';
 import { EventInfoComponent } from './components/event-info/event-info';
 import { CategoriesComponent } from './components/categories/categories';
 import { RegistrationFormComponent } from './components/registration-form/registration-form';
+import { BadgeDownloadComponent } from './components/badge-download/badge-download';
 import { BadgeLookupComponent } from './components/badge-lookup/badge-lookup';
 import { GalleryComponent } from './components/gallery/gallery';
 import { FaqComponent } from './components/faq/faq';
@@ -20,6 +21,7 @@ import { AiChatWidgetComponent } from './components/ai-chat-widget/ai-chat-widge
     EventInfoComponent,
     CategoriesComponent,
     RegistrationFormComponent,
+    BadgeDownloadComponent,
     BadgeLookupComponent,
     GalleryComponent,
     FaqComponent,
