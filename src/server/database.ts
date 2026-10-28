@@ -11,6 +11,7 @@ const configuredDnsServers = process.env['MONGODB_DNS_SERVERS']
   .filter(Boolean);
 const collectionName = 'registrations';
 const institutionWithExpandedQuota = '215491000348';
+const institutionWithAdditionalAutomationProject = '115759001887';
 
 if (configuredDnsServers?.length) {
   dns.setServers(configuredDnsServers);
@@ -177,6 +178,7 @@ export async function countInstitutionCategoryRegistrations(institutionNit: stri
 }
 
 export function getInstitutionCategoryRegistrationLimit(institutionNit: string, category: Registration['category']): number {
+  if (institutionNit === institutionWithAdditionalAutomationProject && category === 'automatizacion') return 3;
   if (institutionNit !== institutionWithExpandedQuota) return 2;
   return category === 'seguidores' ? 4 : 5;
 }

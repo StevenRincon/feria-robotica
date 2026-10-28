@@ -27,7 +27,7 @@ La colección `registrations` se crea automáticamente al iniciar el servidor co
 
 - Un máximo de dos estudiantes en `members` (el líder y un integrante adicional).
 - Un profesor o tutor opcional en `mentorName` y `mentorDoc`.
-- Un máximo de dos proyectos por NIT dentro de cada categoría.
+- Un máximo de dos proyectos por NIT dentro de cada categoría, excepto el Código DANE `115759001887`, que puede inscribir tres proyectos en automatización electrónica. El Código DANE `215491000348` conserva su cupo ampliado: cuatro en seguidores de línea y cinco en las demás categorías.
 - Validación de documentos repetidos entre estudiantes, profesor e inscripciones existentes.
 - Índices únicos para `code` y de consulta para documentos, categoría, estado y ciudad.
 

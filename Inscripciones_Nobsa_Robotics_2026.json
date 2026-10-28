@@ -1,0 +1,110 @@
+[
+  {
+    "_id": "6ae25982430a5c64cb8adfc8",
+    "id": "reg-3784e8fa-a494-41db-9f1f-ebd201d5f72b",
+    "code": "NOBSA-ROB-2026-S9254-9EVC",
+    "createdAt": "2026-10-28T20:22:26.952Z",
+    "category": "seguidores",
+    "categoryName": "Seguidores de línea",
+    "teamName": "INNOVAPOLI3D ",
+    "projectTitle": "Seguidor de Línea ",
+    "institutionNit": "115759001887",
+    "institutionType": "Colegio / I.E.",
+    "city": "Sogamoso  Colombia",
+    "department": "Boyacá",
+    "leaderName": "Erick Gonzalo Vargas ",
+    "leaderDoc": "1057590806",
+    "mentorName": "Diego Hernán Moreno Guaidia ",
+    "mentorDoc": "74451874",
+    "mentorEmail": "diegomoreno201584@gmail.com",
+    "mentorPhone": "3103277865",
+    "members": [
+      {
+        "id": "member-dbfc2249-834e-4c98-aa73-6758e36b1d8b",
+        "fullName": "Erick Gonzalo Vargas ",
+        "documentId": "1057590806",
+        "role": "Líder / Capitán"
+      },
+      {
+        "id": "member-357adbfe-dbc5-4a0f-a6d0-70e54af0dede",
+        "fullName": "José Miguel Alvarado Malaver ",
+        "documentId": "1054287846",
+        "role": "Integrante"
+      }
+    ],
+    "projectDescription": "Seguidor de línea con Micro bit ",
+    "technicalSpecs": "microbit sensores ruedas moror",
+    "spaceRequirements": "Toma corriente ",
+    "status": "Aprobado"
+  },
+  {
+    "_id": "6abfd6b0d421af4fc5e86a34",
+    "id": "reg-6f64d4cf-9bf4-462c-a2fd-d4cc91d0b4a6",
+    "code": "NOBSA-ROB-2026-A5043-P0TU",
+    "createdAt": "2026-10-02T16:07:12.498Z",
+    "category": "automatizacion",
+    "categoryName": "Proyecto de automatización electrónica",
+    "teamName": "INNOVAPOLI3D ",
+    "projectTitle": "Novaguia",
+    "institutionNit": "115759001887",
+    "institutionType": "Colegio / I.E.",
+    "city": "Nobsa",
+    "department": "Boyacá",
+    "leaderName": "Laura Lozano ",
+    "leaderDoc": "1057981957",
+    "mentorName": "Diego Moreno Guaidia ",
+    "mentorDoc": "74451874",
+    "mentorEmail": "diegomoreno201584@gmail.com",
+    "mentorPhone": "3103277865",
+    "members": [
+      {
+        "id": "member-af6354de-aaaa-4bd3-9d70-8aa0d271232c",
+        "fullName": "Laura Lozano ",
+        "documentId": "1057981957",
+        "role": "Líder / Capitán"
+      },
+      {
+        "id": "member-bd5b4b21-6e94-4576-b0ae-857f4f7e78df",
+        "fullName": "Sara Lozano ",
+        "documentId": "1054287129",
+        "role": "Integrante"
+      }
+    ],
+    "projectDescription": "Bastón inteligente con alerta de proximidad y vibración para ayudar a las personas con discapacidad visual ",
+    "technicalSpecs": "Sensores de proximidad, sensor ultrasónico , motor de vibración , Arduino nano ",
+    "spaceRequirements": "Toma de energía ",
+    "status": "Aprobado"
+  },
+  {
+    "_id": "6abea3525d52fbbdeab9c96d",
+    "id": "reg-ce43e258-d469-4941-a5b8-3ac7f1c1b477",
+    "code": "NOBSA-ROB-2026-A6993-UI21",
+    "createdAt": "2026-10-01T18:15:46.153Z",
+    "category": "automatizacion",
+    "categoryName": "Proyecto de automatización electrónica",
+    "teamName": "INNOVAPOLI3D",
+    "projectTitle": "Limpiatech",
+    "institutionNit": "115759001887",
+    "institutionType": "Colegio / I.E.",
+    "city": "Sogamoso  Colombia",
+    "department": "Boyacá",
+    "leaderName": "Sharid tatiana portilla cruz",
+    "leaderDoc": "1050610634",
+    "mentorName": "Diego Hernán Moreno Guaidia ",
+    "mentorDoc": "74451874",
+    "mentorEmail": "diegomoreno201584@gmail.com",
+    "mentorPhone": "3103277865",
+    "members": [
+      {
+        "id": "member-ed100483-7514-4be7-861b-70329b190f73",
+        "fullName": "Sharid tatiana portilla cruz",
+        "documentId": "1050610634",
+        "role": "Líder / Capitán"
+      }
+    ],
+    "projectDescription": "Limpiatech es un dispositivo q cuenta con 4 sensores su principal función es trapear automáticamente ",
+    "technicalSpecs": "Tiene tres sensores ultrasónico 1 infrarojo motoreecdutores , pulsadores motrdrive un Arduino una batería 11.1 voltios a 18.650 miliamperios  ",
+    "spaceRequirements": "",
+    "status": "Aprobado"
+  }
+]
