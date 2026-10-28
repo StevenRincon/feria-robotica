@@ -22,6 +22,7 @@ import type { Registration, RegistrationStatus } from './app/models/registration
 import { createParticipationCertificate } from './server/certificate';
 import { sendRegistrationConfirmation } from './server/registration-email';
 import { normalizeInstitutionDane } from './server/institution-nit';
+import { calculateRegistrationStats } from './server/registration-stats';
 import { areCertificatesAvailable, CERTIFICATE_AVAILABILITY_MESSAGE } from './shared/certificate-availability';
 
 const browserDistFolder = join(import.meta.dirname, '../browser');
@@ -497,68 +498,13 @@ app.delete('/api/registrations/:id', async (req, res) => {
 });
 
 app.get('/api/stats', async (_req, res) => {
-  const registrations = await (await registrationsCollection()).find().toArray();
-  const totalTeams = registrations.length;
-  const studentDocuments = new Set<string>();
-  const teacherDocuments = new Set<string>();
-  const participantDocuments = new Set<string>();
-  const municipalities = new Set<string>();
-
-  const byCategory = {
-    automatizacion: 0,
-    seguidores: 0,
-    educativos: 0
-  };
-
-  const byStatus = {
-    confirmado: 0,
-    pendiente: 0,
-    aprobado: 0
-  };
-
-  registrations.forEach(r => {
-    const leaderDoc = r.leaderDoc.trim();
-    if (leaderDoc) {
-      studentDocuments.add(leaderDoc);
-      participantDocuments.add(leaderDoc);
-    }
-    for (const member of r.members || []) {
-      const documentId = member.documentId.trim();
-      if (!documentId) continue;
-      if (member.role === 'Líder / Capitán' || member.role === 'Integrante') {
-        studentDocuments.add(documentId);
-        participantDocuments.add(documentId);
-      } else if (member.role === 'Docente / Profesor') {
-        teacherDocuments.add(documentId);
-        participantDocuments.add(documentId);
-      }
-    }
-    const mentorDoc = r.mentorDoc?.trim();
-    if (mentorDoc) {
-      teacherDocuments.add(mentorDoc);
-      participantDocuments.add(mentorDoc);
-    }
-    municipalities.add(r.city.toLowerCase().trim());
-    if (r.category in byCategory) {
-      byCategory[r.category]++;
-    }
-    if (r.status === 'Aprobado') byStatus.aprobado++;
-    else if (r.status === 'Confirmado') byStatus.confirmado++;
-    else byStatus.pendiente++;
-  });
-
-  res.json({
-    success: true,
-    data: {
-      totalTeams,
-      totalParticipants: participantDocuments.size,
-      totalStudents: studentDocuments.size,
-      totalTeachers: teacherDocuments.size,
-      totalMunicipalities: municipalities.size,
-      byCategory,
-      byStatus
-    }
-  });
+  try {
+    const registrations = await (await registrationsCollection()).find().toArray();
+    return res.json({ success: true, data: calculateRegistrationStats(registrations) });
+  } catch (error) {
+    console.error('Error consultando estadísticas:', error);
+    return res.status(503).json({ success: false, message: 'La base de datos no está disponible.' });
+  }
 });
 
 app.post('/api/chat', async (req, res) => {

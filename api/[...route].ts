@@ -4,6 +4,7 @@ import type { Registration, RegistrationStatus } from '../src/app/models/registr
 import { createParticipationCertificate } from '../src/server/certificate.js';
 import { sendRegistrationConfirmation } from '../src/server/registration-email.js';
 import { normalizeInstitutionDane } from '../src/server/institution-nit.js';
+import { calculateRegistrationStats } from '../src/server/registration-stats.js';
 import { areCertificatesAvailable, CERTIFICATE_AVAILABILITY_MESSAGE } from '../src/shared/certificate-availability.js';
 import {
     countInstitutionCategoryRegistrations,
@@ -297,17 +298,7 @@ api.delete('/api/registrations/:id', async (req, res) => {
 api.get('/api/stats', async (_req, res) => {
     try {
         const registrations = await (await registrationsCollection()).find().toArray();
-        const byCategory = { automatizacion: 0, seguidores: 0, educativos: 0 };
-        const byStatus = { confirmado: 0, pendiente: 0, aprobado: 0 };
-        const municipalities = new Set<string>();
-        registrations.forEach(registration => {
-            byCategory[registration.category]++;
-            municipalities.add(registration.city.toLowerCase().trim());
-            if (registration.status === 'Aprobado') byStatus.aprobado++;
-            else if (registration.status === 'Confirmado') byStatus.confirmado++;
-            else byStatus.pendiente++;
-        });
-        return res.json({ success: true, data: { totalTeams: registrations.length, totalParticipants: registrations.reduce((total, registration) => total + registration.members.length + Number(Boolean(registration.mentorName)), 0), totalMunicipalities: municipalities.size, byCategory, byStatus } });
+        return res.json({ success: true, data: calculateRegistrationStats(registrations) });
     } catch (error) {
         console.error('Error consultando estadísticas:', error);
         return res.status(503).json({ success: false, message: 'La base de datos no está disponible.' });
