@@ -10,8 +10,6 @@ const configuredDnsServers = process.env['MONGODB_DNS_SERVERS']
   .map(server => server.trim())
   .filter(Boolean);
 const collectionName = 'registrations';
-const institutionWithExpandedQuota = '215491000348';
-const institutionWithAdditionalAutomationProject = '115759001887';
 
 if (configuredDnsServers?.length) {
   dns.setServers(configuredDnsServers);
@@ -166,30 +164,6 @@ export async function hasDuplicateParticipantDocuments(documents: string[], exce
     ...(exceptId ? { id: { $ne: exceptId } } : {})
   };
   return (await registrations.countDocuments(query, { limit: 1 })) > 0;
-}
-
-export async function countInstitutionCategoryRegistrations(institutionNit: string, category: Registration['category']): Promise<number> {
-  const registrations = await registrationsCollection();
-  const escapedInstitutionNit = institutionNit.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  return registrations.countDocuments({
-    institutionNit: { $regex: `^${escapedInstitutionNit}$` },
-    category
-  });
-}
-
-export function getInstitutionCategoryRegistrationLimit(institutionNit: string, category: Registration['category']): number {
-  if (institutionNit === institutionWithAdditionalAutomationProject && category === 'automatizacion') return 3;
-  if (institutionNit !== institutionWithExpandedQuota) return 2;
-  return category === 'seguidores' ? 4 : 5;
-}
-
-export async function findInstitutionCategoryProjects(institutionNit: string, category: Registration['category']): Promise<Array<Pick<Registration, 'teamName' | 'projectTitle'>>> {
-  const registrations = await registrationsCollection();
-  const escapedInstitutionNit = institutionNit.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  return registrations.find(
-    { institutionNit: { $regex: `^${escapedInstitutionNit}$` }, category },
-    { projection: { _id: 0, teamName: 1, projectTitle: 1 } }
-  ).toArray();
 }
 
 export async function updateRegistrationStatus(id: string, status: RegistrationStatus): Promise<Registration | null> {

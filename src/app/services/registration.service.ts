@@ -208,8 +208,8 @@ export class RegistrationService {
       }),
       tap(newReg => {
         this.currentRegistrationResult.set(newReg);
-        this.loadRegistrations();
-        this.loadStats();
+        this.loadRegistrations().subscribe();
+        this.loadStats().subscribe();
         this.loading.set(false);
       }),
       catchError(err => {

@@ -9,9 +9,6 @@ import { join } from 'node:path';
 import { randomUUID } from 'node:crypto';
 import { GoogleGenAI } from '@google/genai';
 import {
-  countInstitutionCategoryRegistrations,
-  findInstitutionCategoryProjects,
-  getInstitutionCategoryRegistrationLimit,
   findRegistrationByCodeOrDocument,
   hasDuplicateParticipantDocuments,
   registrationsCollection,
@@ -22,8 +19,9 @@ import type { Registration, RegistrationStatus } from './app/models/registration
 import { createParticipationCertificate } from './server/certificate';
 import { sendRegistrationConfirmation } from './server/registration-email';
 import { normalizeInstitutionDane } from './server/institution-nit';
-import { calculateRegistrationStats } from './server/registration-stats';
+import { calculateRegistrationStats, getParticipantDocumentIds } from './server/registration-stats';
 import { areCertificatesAvailable, CERTIFICATE_AVAILABILITY_MESSAGE } from './shared/certificate-availability';
+import { GLOBAL_PARTICIPANT_LIMIT, REGISTRATION_CAPACITY_MESSAGE } from './shared/registration-capacity';
 
 const browserDistFolder = join(import.meta.dirname, '../browser');
 
@@ -305,17 +303,6 @@ app.post('/api/registrations', async (req, res) => {
       return res.status(400).json({ success: false, message: 'La categoría de inscripción no es válida.' });
     }
 
-    const institutionCategoryCount = await countInstitutionCategoryRegistrations(institutionNit, body.category);
-    const categoryLimit = getInstitutionCategoryRegistrationLimit(institutionNit, body.category);
-    if (institutionCategoryCount >= categoryLimit) {
-      const projects = await findInstitutionCategoryProjects(institutionNit, body.category);
-      return res.status(409).json({
-        success: false,
-        message: `Esta institución ya alcanzó el máximo de ${categoryLimit} proyectos inscritos en esta categoría.`,
-        projects
-      });
-    }
-
     const requestedMembers = Array.isArray(body.members)
       ? body.members.filter((member: { fullName?: string; documentId?: string }) => member?.fullName || member?.documentId)
       : [];
@@ -342,6 +329,30 @@ app.post('/api/registrations', async (req, res) => {
     }
     if (await hasDuplicateParticipantDocuments(participantDocuments)) {
       return res.status(409).json({ success: false, message: 'Uno de los documentos ya pertenece a otra inscripción.' });
+    }
+    const registrations = await registrationsCollection();
+    const existingParticipantDocuments = getParticipantDocumentIds(await registrations.find().toArray());
+    const projectedParticipantCount = new Set([
+      ...existingParticipantDocuments,
+      ...allDocuments.map((document: string) => String(document).trim()).filter(Boolean)
+    ]).size;
+    if (existingParticipantDocuments.size >= GLOBAL_PARTICIPANT_LIMIT) {
+      return res.status(409).json({
+        success: false,
+        code: 'GLOBAL_PARTICIPANT_LIMIT_REACHED',
+        message: REGISTRATION_CAPACITY_MESSAGE,
+        totalParticipants: existingParticipantDocuments.size,
+        limit: GLOBAL_PARTICIPANT_LIMIT
+      });
+    }
+    if (projectedParticipantCount > GLOBAL_PARTICIPANT_LIMIT) {
+      return res.status(409).json({
+        success: false,
+        code: 'PROJECT_EXCEEDS_GLOBAL_PARTICIPANT_LIMIT',
+        message: `Este proyecto superaría el límite global de ${GLOBAL_PARTICIPANT_LIMIT} participantes.`,
+        totalParticipants: existingParticipantDocuments.size,
+        limit: GLOBAL_PARTICIPANT_LIMIT
+      });
     }
 
     const randomNum = Math.floor(1000 + Math.random() * 9000);
@@ -373,7 +384,7 @@ app.post('/api/registrations', async (req, res) => {
       status: 'Aprobado'
     };
 
-    await (await registrationsCollection()).insertOne(newReg);
+    await registrations.insertOne(newReg);
     const emailSent = await sendRegistrationConfirmation(newReg);
     return res.status(201).json({ success: true, message: 'Inscripción registrada con éxito', emailSent, data: newReg });
   } catch (error) {

@@ -1,10 +1,11 @@
-import { ChangeDetectionStrategy, Component, ElementRef, ViewChild, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ElementRef, ViewChild, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, Validators, FormArray, AbstractControl, ValidationErrors } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
 import Swal from 'sweetalert2';
 import { RegistrationService } from '../../services/registration.service';
 import { CategoryId, Registration } from '../../models/registration.model';
+import { GLOBAL_PARTICIPANT_LIMIT } from '../../../shared/registration-capacity';
 
 @Component({
   selector: 'app-registration-form',
@@ -114,6 +115,15 @@ import { CategoryId, Registration } from '../../models/registration.model';
               </button>
             </div>
 
+          </div>
+        } @else if (isRegistrationClosed()) {
+          <div class="bg-[#0a0c14] border-2 border-rose-500/70 max-w-2xl mx-auto p-8 text-center" role="status" aria-live="polite">
+            <mat-icon class="text-rose-400 text-4xl">block</mat-icon>
+            <h3 class="mt-3 font-black text-2xl text-white uppercase">INSCRIPCIONES CERRADAS</h3>
+            <p class="mt-3 text-sm text-gray-300 font-mono">
+              Se llenaron los cupos: el total global llegó a {{ regService.stats()?.totalParticipants ?? globalParticipantLimit }} participantes. No es posible inscribir más proyectos.
+            </p>
+            <p class="mt-2 text-xs text-rose-300 font-mono">{{ regService.stats()?.totalParticipants ?? globalParticipantLimit }} / {{ globalParticipantLimit }} PARTICIPANTES</p>
           </div>
         } @else {
           <!-- Main Form Container -->
@@ -463,7 +473,7 @@ import { CategoryId, Registration } from '../../models/registration.model';
                     </button>
 
                     <button 
-                      [disabled]="regForm.invalid || isSubmitting()"
+                      [disabled]="regForm.invalid || isSubmitting() || isRegistrationClosed()"
                       type="submit" 
                       class="cyber-button-primary px-8 py-4 text-xs flex items-center gap-2 disabled:opacity-50 disabled:pointer-events-none">
                       @if (isSubmitting()) {
@@ -496,6 +506,11 @@ export class RegistrationFormComponent {
 
   currentStep = signal<number>(1);
   isSubmitting = signal<boolean>(false);
+  capacityReached = signal<boolean>(false);
+  isRegistrationClosed = computed(() =>
+    this.capacityReached() || (this.regService.stats()?.totalParticipants ?? 0) >= GLOBAL_PARTICIPANT_LIMIT
+  );
+  readonly globalParticipantLimit = GLOBAL_PARTICIPANT_LIMIT;
   createdRegistration = this.regService.currentRegistrationResult;
   categories = this.regService.categories;
 
@@ -543,6 +558,10 @@ export class RegistrationFormComponent {
   }
 
   constructor() {
+    this.regService.loadStats().subscribe(stats => {
+      if (stats) this.capacityReached.set(stats.totalParticipants >= GLOBAL_PARTICIPANT_LIMIT);
+    });
+
     // Sync preselected category signal
     const selectedCat = this.regService.selectedCategoryForForm();
     if (selectedCat) {
@@ -600,6 +619,10 @@ export class RegistrationFormComponent {
         console.error('Error creating registration:', err);
         this.isSubmitting.set(false);
         const message = err.error?.message || 'No fue posible completar la inscripción.';
+        if (err.error?.code === 'GLOBAL_PARTICIPANT_LIMIT_REACHED') {
+          this.capacityReached.set(true);
+          this.regService.loadStats().subscribe();
+        }
         const projects = err.error?.projects as Array<{ teamName: string; projectTitle: string }> | undefined;
         const projectList = projects?.length
           ? `<ul>${projects.map(project => `<li><strong>${this.escapeHtml(project.teamName)}</strong>: ${this.escapeHtml(project.projectTitle)}</li>`).join('')}</ul>`
