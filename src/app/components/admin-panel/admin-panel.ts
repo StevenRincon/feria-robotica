@@ -52,7 +52,7 @@ import { areCertificatesAvailable, CERTIFICATE_AVAILABILITY_MESSAGE } from '../.
               </div>
 
               @if (authenticationError()) {
-                <p class="text-xs text-rose-400 font-mono">Contraseña incorrecta.</p>
+                <p class="text-xs text-rose-400 font-mono">No fue posible validar el acceso. Verifica la contraseña y la configuración del servidor.</p>
               }
 
               <button type="submit" class="cyber-button-primary w-full py-3 text-xs flex items-center justify-center gap-2">
@@ -89,8 +89,61 @@ import { areCertificatesAvailable, CERTIFICATE_AVAILABILITY_MESSAGE } from '../.
               class="px-4 py-2.5 bg-[#11141d] border border-[#00f3ff]/40 text-gray-200 hover:text-white hover:border-[#00f3ff] text-xs font-mono font-bold uppercase transition-all flex items-center gap-2">
               <mat-icon class="text-[#00f3ff] text-sm">code</mat-icon> RESPALDAR JSON
             </button>
+
           </div>
         </div>
+
+        <section class="grid lg:grid-cols-2 gap-5 bg-[#11141d] border border-[#00f3ff]/30 p-5 sm:p-6 mb-8">
+          <div class="space-y-3">
+            <div>
+              <h3 class="text-sm font-mono font-bold text-white uppercase">Probar correo del evento</h3>
+              <p class="text-xs text-gray-400 mt-1">Envía el mensaje y la imagen a una dirección para revisar cómo se ve.</p>
+            </div>
+            <div class="flex flex-col sm:flex-row gap-2">
+              <input
+                type="email"
+                name="reminderTestEmail"
+                [(ngModel)]="reminderTestEmail"
+                autocomplete="email"
+                placeholder="correo@ejemplo.com"
+                aria-label="Correo para enviar prueba"
+                class="min-w-0 flex-1 px-3 py-2 bg-[#05060a] border border-[#00f3ff]/30 text-white text-sm focus:outline-none focus:border-[#00f3ff]" />
+              <button
+                (click)="sendReminderTest()"
+                type="button"
+                [disabled]="testSending() || !isReminderTestEmailValid()"
+                class="px-4 py-2 bg-[#05060a] border border-[#00f3ff]/50 text-[#00f3ff] hover:text-white hover:border-[#00f3ff] text-xs font-mono font-bold uppercase transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
+                <mat-icon class="text-sm">{{ testSending() ? 'hourglass_top' : 'outgoing_mail' }}</mat-icon>
+                {{ testSending() ? 'ENVIANDO...' : 'ENVIAR PRUEBA' }}
+              </button>
+            </div>
+            @if (testMessage()) {
+              <p class="text-xs font-mono" [class.text-emerald-400]="!testFailed()" [class.text-rose-400]="testFailed()">
+                {{ testMessage() }}
+              </p>
+            }
+          </div>
+
+          <div class="flex flex-col items-start justify-center gap-3 border-t border-[#00f3ff]/20 pt-5 lg:border-t-0 lg:border-l lg:pt-0 lg:pl-5">
+            <div>
+              <h3 class="text-sm font-mono font-bold text-white uppercase">Envío masivo</h3>
+              <p class="text-xs text-gray-400 mt-1">Envía el mismo correo a todas las direcciones válidas registradas.</p>
+            </div>
+            <button
+              (click)="sendTwoDaysReminder()"
+              type="button"
+              [disabled]="reminderSending() || reminderCompleted()"
+              class="px-4 py-2.5 bg-[#11141d] border border-amber-400/50 text-amber-300 hover:text-white hover:border-amber-300 text-xs font-mono font-bold uppercase transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
+              <mat-icon class="text-sm">{{ reminderSending() ? 'hourglass_top' : 'mail' }}</mat-icon>
+              {{ reminderSending() ? 'ENVIANDO RECORDATORIO...' : reminderCompleted() ? 'RECORDATORIO ENVIADO' : 'ENVIAR AVISO A TODOS' }}
+            </button>
+            @if (reminderMessage()) {
+              <p class="text-xs font-mono" [class.text-emerald-400]="!reminderFailed()" [class.text-rose-400]="reminderFailed()">
+                {{ reminderMessage() }}
+              </p>
+            }
+          </div>
+        </section>
 
         <!-- KPI Metrics Grid -->
         <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-8">
@@ -503,9 +556,9 @@ import { areCertificatesAvailable, CERTIFICATE_AVAILABILITY_MESSAGE } from '../.
   `
 })
 export class AdminPanelComponent implements OnDestroy {
-  private readonly testPassword = 'T1cN0b54';
   private readonly sessionDurationMs = 3 * 60 * 1000;
   private sessionTimeoutId: ReturnType<typeof setTimeout> | null = null;
+  private adminAccessPassword = '';
   regService = inject(RegistrationService);
   readonly certificateAvailabilityMessage = CERTIFICATE_AVAILABILITY_MESSAGE;
 
@@ -517,26 +570,47 @@ export class AdminPanelComponent implements OnDestroy {
   password = '';
   isAuthenticated = signal(false);
   authenticationError = signal(false);
+  reminderSending = signal(false);
+  reminderCompleted = signal(false);
+  reminderFailed = signal(false);
+  reminderMessage = signal('');
+  reminderTestEmail = '';
+  testSending = signal(false);
+  testFailed = signal(false);
+  testMessage = signal('');
   selectedDetail = signal<Registration | null>(null);
   editingDetail: Registration | null = null;
   savingEdit = signal(false);
   editError = signal('');
 
   authenticate(): void {
-    this.isAuthenticated.set(this.password === this.testPassword);
-    this.authenticationError.set(!this.isAuthenticated());
-    if (this.isAuthenticated()) {
-      this.password = '';
-      this.clearSessionTimeout();
-      this.sessionTimeoutId = setTimeout(() => {
+    const password = this.password;
+    this.authenticationError.set(false);
+    this.regService.authenticateAdmin(password).subscribe({
+      next: authenticated => {
+        this.isAuthenticated.set(authenticated);
+        this.authenticationError.set(!authenticated);
+        if (!authenticated) return;
+
+        this.adminAccessPassword = password;
+        this.password = '';
+        this.clearSessionTimeout();
+        this.sessionTimeoutId = setTimeout(() => {
+          this.isAuthenticated.set(false);
+          this.adminAccessPassword = '';
+          this.selectedDetail.set(null);
+          this.editingDetail = null;
+          this.sessionTimeoutId = null;
+        }, this.sessionDurationMs);
+        this.regService.loadRegistrations(this.categoryFilter, this.searchFilter).subscribe();
+        this.regService.loadStats().subscribe();
+      },
+      error: error => {
         this.isAuthenticated.set(false);
-        this.selectedDetail.set(null);
-        this.editingDetail = null;
-        this.sessionTimeoutId = null;
-      }, this.sessionDurationMs);
-      this.regService.loadRegistrations(this.categoryFilter, this.searchFilter).subscribe();
-      this.regService.loadStats().subscribe();
-    }
+        this.authenticationError.set(true);
+        console.error('Error validando el acceso administrativo:', error);
+      }
+    });
   }
 
   ngOnDestroy(): void {
@@ -548,6 +622,54 @@ export class AdminPanelComponent implements OnDestroy {
       clearTimeout(this.sessionTimeoutId);
       this.sessionTimeoutId = null;
     }
+  }
+
+  sendTwoDaysReminder(): void {
+    if (this.reminderSending() || this.reminderCompleted() || !this.adminAccessPassword) return;
+    if (!confirm('Se enviará un correo individual a cada dirección válida registrada. La imagen se mostrará dentro del mensaje. ¿Deseas continuar?')) return;
+
+    this.reminderSending.set(true);
+    this.reminderMessage.set('');
+    this.regService.sendTwoDaysReminder(this.adminAccessPassword).subscribe({
+      next: result => {
+        this.reminderSending.set(false);
+        this.reminderCompleted.set(true);
+        this.reminderFailed.set(result.failed > 0);
+        this.reminderMessage.set(`Envío finalizado: ${result.sent} correos enviados y ${result.failed} fallidos, de ${result.total} destinatarios.`);
+      },
+      error: error => {
+        this.reminderSending.set(false);
+        this.reminderFailed.set(true);
+        this.reminderMessage.set(error.error?.message || 'No fue posible ejecutar el envío. Revisa la configuración y los registros del servidor.');
+        console.error('Error ejecutando el recordatorio masivo:', error);
+      }
+    });
+  }
+
+  isReminderTestEmailValid(): boolean {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(this.reminderTestEmail.trim());
+  }
+
+  sendReminderTest(): void {
+    if (this.testSending() || !this.isReminderTestEmailValid() || !this.adminAccessPassword) return;
+    const recipient = this.reminderTestEmail.trim();
+    if (!confirm(`Se enviará un correo de prueba con el mismo contenido a ${recipient}. ¿Deseas continuar?`)) return;
+
+    this.testSending.set(true);
+    this.testMessage.set('');
+    this.regService.sendTwoDaysReminderTest(this.adminAccessPassword, recipient).subscribe({
+      next: () => {
+        this.testSending.set(false);
+        this.testFailed.set(false);
+        this.testMessage.set(`Correo de prueba enviado a ${recipient}. Revisa también la carpeta de correo no deseado.`);
+      },
+      error: error => {
+        this.testSending.set(false);
+        this.testFailed.set(true);
+        this.testMessage.set(error.error?.message || 'No fue posible enviar el correo de prueba.');
+        console.error('Error enviando el correo de prueba:', error);
+      }
+    });
   }
 
   onFilterChange(): void {

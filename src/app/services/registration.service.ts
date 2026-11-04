@@ -220,6 +220,28 @@ export class RegistrationService {
     );
   }
 
+  authenticateAdmin(password: string): Observable<boolean> {
+    return this.http.post<{ success: boolean }>('/api/admin/authenticate', { password }).pipe(
+      map(response => response.success)
+    );
+  }
+
+  sendTwoDaysReminder(password: string): Observable<{ sent: number; failed: number; total: number }> {
+    return this.http.post<{ sent: number; failed: number; total: number }>(
+      '/api/admin/jobs/two-days-reminder',
+      {},
+      { headers: { 'x-admin-password': password } }
+    );
+  }
+
+  sendTwoDaysReminderTest(password: string, email: string): Observable<boolean> {
+    return this.http.post<{ success: boolean }>(
+      '/api/admin/jobs/two-days-reminder/test',
+      { email },
+      { headers: { 'x-admin-password': password } }
+    ).pipe(map(response => response.success));
+  }
+
   updateStatus(id: string, status: RegistrationStatus): Observable<boolean> {
     return this.http.put<{ success: boolean }>(`/api/registrations/${id}/status`, { status }).pipe(
       map(res => res.success),

@@ -3,6 +3,8 @@ import { randomUUID } from 'node:crypto';
 import type { Registration, RegistrationStatus } from '../src/app/models/registration.model';
 import { createParticipationCertificate } from '../src/server/certificate.js';
 import { sendRegistrationConfirmation } from '../src/server/registration-email.js';
+import { getAnnouncementRecipients, isReminderEmailConfigured, isValidAnnouncementEmail, sendTwoDaysReminder } from '../src/server/announcement-email.js';
+import { isAdminPasswordConfigured, isValidAdminPassword } from '../src/server/admin-auth.js';
 import { normalizeInstitutionDane } from '../src/server/institution-nit.js';
 import { calculateRegistrationStats, getParticipantDocumentIds } from '../src/server/registration-stats.js';
 import { areCertificatesAvailable, CERTIFICATE_AVAILABILITY_MESSAGE } from '../src/shared/certificate-availability.js';
@@ -23,6 +25,75 @@ function getCategoryName(category: string): string {
     if (category === 'educativos') return 'Proyectos educativos en robótica';
     return 'Proyecto de automatización electrónica';
 }
+
+api.post('/api/admin/authenticate', (req, res) => {
+    if (!isAdminPasswordConfigured()) {
+        console.error('Autenticación administrativa no disponible: configura ADMIN_PASSWORD.');
+        return res.status(503).json({ success: false, message: 'El acceso administrativo no está configurado en el servidor.' });
+    }
+    if (!isValidAdminPassword(req.body?.password)) {
+        return res.status(401).json({ success: false, message: 'Contraseña administrativa incorrecta.' });
+    }
+    return res.json({ success: true });
+});
+
+api.post('/api/admin/jobs/two-days-reminder/test', async (req, res) => {
+    if (!isAdminPasswordConfigured()) {
+        console.error('Correo de prueba no disponible: configura ADMIN_PASSWORD.');
+        return res.status(503).json({ success: false, message: 'El acceso administrativo no está configurado en el servidor.' });
+    }
+    if (!isValidAdminPassword(req.get('x-admin-password'))) {
+        return res.status(401).json({ success: false, message: 'No tienes autorización para enviar el correo de prueba.' });
+    }
+    if (!isReminderEmailConfigured()) {
+        console.error('Correo de prueba no disponible: configura GMAIL_USER y GMAIL_APP_PASSWORD.');
+        return res.status(503).json({ success: false, message: 'El servicio de correo no está configurado en el servidor.' });
+    }
+
+    const recipient = req.body?.email;
+    if (!isValidAnnouncementEmail(recipient)) {
+        return res.status(400).json({ success: false, message: 'Ingresa una dirección de correo válida.' });
+    }
+
+    try {
+        const result = await sendTwoDaysReminder([recipient.trim().toLowerCase()]);
+        if (result.failed) {
+            return res.status(502).json({ success: false, message: 'No fue posible entregar el correo de prueba.' });
+        }
+        return res.json({ success: true, email: recipient.trim().toLowerCase() });
+    } catch (error) {
+        console.error('Error enviando el correo de prueba:', error);
+        return res.status(500).json({ success: false, message: 'No fue posible enviar el correo de prueba. Revisa los registros del servidor.' });
+    }
+});
+
+api.post('/api/admin/jobs/two-days-reminder', async (req, res) => {
+    if (!isAdminPasswordConfigured()) {
+        console.error('Job de correo no disponible: configura ADMIN_PASSWORD.');
+        return res.status(503).json({ success: false, message: 'El envío administrativo no está configurado en el servidor.' });
+    }
+    if (!isValidAdminPassword(req.get('x-admin-password'))) {
+        return res.status(401).json({ success: false, message: 'No tienes autorización para ejecutar este envío.' });
+    }
+    if (!isReminderEmailConfigured()) {
+        console.error('Job de correo no disponible: configura GMAIL_USER y GMAIL_APP_PASSWORD.');
+        return res.status(503).json({ success: false, message: 'El servicio de correo no está configurado en el servidor.' });
+    }
+
+    try {
+        const registrations = await (await registrationsCollection()).find().toArray();
+        const recipients = getAnnouncementRecipients(registrations);
+        if (!recipients.length) {
+            return res.status(422).json({ success: false, message: 'No hay correos válidos registrados para enviar el recordatorio.' });
+        }
+
+        const result = await sendTwoDaysReminder(recipients);
+        return res.json({ success: true, ...result });
+    } catch (error) {
+        console.error('Error ejecutando el job de recordatorio por correo:', error);
+        return res.status(500).json({ success: false, message: 'No fue posible ejecutar el envío. Revisa los registros del servidor.' });
+    }
+});
 
 api.get('/api/registrations', async (req, res) => {
     try {
