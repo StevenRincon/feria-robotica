@@ -19,7 +19,7 @@ import type { Registration, RegistrationStatus } from './app/models/registration
 import { createParticipationCertificate } from './server/certificate';
 import { sendRegistrationConfirmation } from './server/registration-email';
 import { getAnnouncementRecipients, isReminderEmailConfigured, isValidAnnouncementEmail, sendTwoDaysReminder } from './server/announcement-email';
-import { isAdminPasswordConfigured, isValidAdminPassword } from './server/admin-auth';
+import { isValidAdminPassword } from './server/admin-auth';
 import { normalizeInstitutionDane } from './server/institution-nit';
 import { calculateRegistrationStats, getParticipantDocumentIds } from './server/registration-stats';
 import { areCertificatesAvailable, CERTIFICATE_AVAILABILITY_MESSAGE } from './shared/certificate-availability';
@@ -186,10 +186,6 @@ function getCategoryName(cat: string): string {
 
 // REST API Endpoints
 app.post('/api/admin/authenticate', (req, res) => {
-  if (!isAdminPasswordConfigured()) {
-    console.error('Autenticación administrativa no disponible: configura ADMIN_PASSWORD.');
-    return res.status(503).json({ success: false, message: 'El acceso administrativo no está configurado en el servidor.' });
-  }
   if (!isValidAdminPassword(req.body?.password)) {
     return res.status(401).json({ success: false, message: 'Contraseña administrativa incorrecta.' });
   }
@@ -197,10 +193,6 @@ app.post('/api/admin/authenticate', (req, res) => {
 });
 
 app.post('/api/admin/jobs/two-days-reminder/test', async (req, res) => {
-  if (!isAdminPasswordConfigured()) {
-    console.error('Correo de prueba no disponible: configura ADMIN_PASSWORD.');
-    return res.status(503).json({ success: false, message: 'El acceso administrativo no está configurado en el servidor.' });
-  }
   if (!isValidAdminPassword(req.get('x-admin-password'))) {
     return res.status(401).json({ success: false, message: 'No tienes autorización para enviar el correo de prueba.' });
   }
@@ -227,10 +219,6 @@ app.post('/api/admin/jobs/two-days-reminder/test', async (req, res) => {
 });
 
 app.post('/api/admin/jobs/two-days-reminder', async (req, res) => {
-  if (!isAdminPasswordConfigured()) {
-    console.error('Job de correo no disponible: configura ADMIN_PASSWORD.');
-    return res.status(503).json({ success: false, message: 'El envío administrativo no está configurado en el servidor.' });
-  }
   if (!isValidAdminPassword(req.get('x-admin-password'))) {
     return res.status(401).json({ success: false, message: 'No tienes autorización para ejecutar este envío.' });
   }

@@ -40,7 +40,6 @@ MONGODB_URI=mongodb://127.0.0.1:27017
 MONGODB_DB=feria_robotica_nobsa
 GMAIL_USER=tu_correo@gmail.com
 GMAIL_APP_PASSWORD=abcdefghijklmnop
-ADMIN_PASSWORD=define_una_contrasena_segura
 PUBLIC_APP_URL=https://feria-robotica.vercel.app
 ```
 
@@ -50,7 +49,7 @@ El correo de confirmación se envía al líder después de guardar la inscripci�
 
 Después de ingresar al panel de administración, puedes probar cómo se verá el recordatorio ingresando una dirección y seleccionando **ENVIAR PRUEBA**. Esta opción envía el mismo correo y la misma imagen, y pide confirmación antes del envío. Cuando hayas revisado la prueba, **ENVIAR AVISO A TODOS** ejecuta el envío masivo: manda un correo individual a cada dirección válida y única registrada como líder, docente o integrante, previa confirmación. El mensaje muestra `public/2dias.jpeg` desde `PUBLIC_APP_URL`; la imagen se carga en el cuerpo HTML del correo y no se adjunta. El panel informa cuántos envíos masivos se completaron y cuántos fallaron.
 
-Configura `ADMIN_PASSWORD`, `GMAIL_USER`, `GMAIL_APP_PASSWORD` y `PUBLIC_APP_URL` como secretos/variables del entorno de producción. La contraseña administrativa ya no está escrita en el código del navegador.
+Configura `GMAIL_USER`, `GMAIL_APP_PASSWORD` y `PUBLIC_APP_URL` como secretos/variables del entorno de producción. El panel conserva la contraseña administrativa existente y la valida en el servidor.
 
 No uses credenciales que hayan sido compartidas en chats, commits o capturas. Rota inmediatamente la contraseña del usuario en MongoDB Atlas y configura la nueva cadena de conexión como secreto del entorno. En PowerShell, para una sesión local:
 
