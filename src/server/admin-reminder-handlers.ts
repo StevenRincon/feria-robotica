@@ -4,12 +4,14 @@ import {
   isReminderEmailConfigured,
   isValidAnnouncementEmail,
   sendTwoDaysReminder
-} from './announcement-email';
-import { isValidAdminPassword } from './admin-auth';
-import { registrationsCollection } from './database';
+} from './announcement-email.js';
+import { isValidAdminPassword } from './admin-auth.js';
+import { registrationsCollection } from './database.js';
 
 function isAuthorized(req: Request, res: Response): boolean {
-  if (isValidAdminPassword(req.get('x-admin-password'))) return true;
+  const header = req.headers['x-admin-password'];
+  const password = Array.isArray(header) ? header[0] : header;
+  if (isValidAdminPassword(password)) return true;
   res.status(401).json({ success: false, message: 'No tienes autorización para ejecutar este envío.' });
   return false;
 }
