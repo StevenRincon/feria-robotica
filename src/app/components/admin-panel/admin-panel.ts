@@ -344,6 +344,18 @@ import { areCertificatesAvailable, CERTIFICATE_AVAILABILITY_MESSAGE } from '../.
                           <mat-icon class="text-base">{{ certificatesAvailable() ? 'picture_as_pdf' : 'lock' }}</mat-icon>
                         </button>
 
+                        <button
+                          (click)="setAttendance(item)"
+                          type="button"
+                          [disabled]="attendanceUpdating().has(item.id)"
+                          [attr.aria-label]="item.attendanceConfirmed ? 'Desmarcar asistencia del equipo' : 'Confirmar asistencia del equipo'"
+                          [title]="item.attendanceConfirmed ? 'Equipo presentado; clic para desmarcar' : 'Confirmar que el equipo se presentó'"
+                          class="p-1.5 hover:bg-emerald-500/10 disabled:cursor-wait"
+                          [class.text-emerald-400]="item.attendanceConfirmed"
+                          [class.text-gray-500]="!item.attendanceConfirmed">
+                          <mat-icon class="text-base">{{ item.attendanceConfirmed ? 'check_circle' : 'check_circle_outline' }}</mat-icon>
+                        </button>
+
                         <button 
                           (click)="deleteItem(item.id)"
                           type="button" 
@@ -582,6 +594,7 @@ export class AdminPanelComponent implements OnDestroy {
   editingDetail: Registration | null = null;
   savingEdit = signal(false);
   editError = signal('');
+  attendanceUpdating = signal<Set<string>>(new Set());
 
   authenticate(): void {
     const password = this.password;
@@ -679,6 +692,27 @@ export class AdminPanelComponent implements OnDestroy {
   updateStatus(id: string, status: RegistrationStatus): void {
     this.regService.updateStatus(id, status).subscribe({
       error: error => console.error('Error actualizando estado:', error)
+    });
+  }
+
+  setAttendance(item: Registration): void {
+    if (this.attendanceUpdating().has(item.id)) return;
+
+    this.attendanceUpdating.update(ids => new Set(ids).add(item.id));
+    this.regService.updateAttendance(item.id, !item.attendanceConfirmed).subscribe({
+      next: () => this.attendanceUpdating.update(ids => {
+        const updatedIds = new Set(ids);
+        updatedIds.delete(item.id);
+        return updatedIds;
+      }),
+      error: error => {
+        this.attendanceUpdating.update(ids => {
+          const updatedIds = new Set(ids);
+          updatedIds.delete(item.id);
+          return updatedIds;
+        });
+        console.error('Error confirmando asistencia del equipo:', error);
+      }
     });
   }
 

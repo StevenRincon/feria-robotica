@@ -67,6 +67,7 @@ const registrationValidator = {
       projectDescription: { bsonType: 'string' },
       technicalSpecs: { bsonType: 'string' },
       spaceRequirements: { bsonType: 'string' },
+      attendanceConfirmed: { bsonType: 'bool' },
       status: { enum: ['Confirmado', 'En revisión', 'Aprobado', 'Pendiente'] }
     },
     anyOf: [
@@ -175,6 +176,15 @@ export async function updateRegistrationStatus(id: string, status: RegistrationS
   return registrations.findOneAndUpdate(
     { $or: [{ id }, { code: id }] },
     { $set: { status } },
+    { returnDocument: 'after' }
+  );
+}
+
+export async function updateRegistrationAttendance(id: string, attendanceConfirmed: boolean): Promise<Registration | null> {
+  const registrations = await registrationsCollection();
+  return registrations.findOneAndUpdate(
+    { $or: [{ id }, { code: id }] },
+    { $set: { attendanceConfirmed } },
     { returnDocument: 'after' }
   );
 }

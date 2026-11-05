@@ -37,6 +37,7 @@ export interface Registration {
   technicalSpecs?: string;
   spaceRequirements?: string;
   status: RegistrationStatus;
+  attendanceConfirmed?: boolean;
   qrCodeUrl?: string;
 }
 

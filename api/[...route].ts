@@ -13,6 +13,7 @@ import {
     findRegistrationByCodeOrDocument,
     hasDuplicateParticipantDocuments,
     registrationsCollection,
+    updateRegistrationAttendance,
     updateRegistration,
     updateRegistrationStatus,
 } from '../src/server/database.js';
@@ -238,6 +239,7 @@ api.post('/api/registrations', async (req, res) => {
             projectDescription: body.projectDescription,
             technicalSpecs: body.technicalSpecs || '',
             spaceRequirements: body.spaceRequirements || '',
+            attendanceConfirmed: false,
             status: 'Aprobado'
         };
 
@@ -261,6 +263,22 @@ api.put('/api/registrations/:id/status', async (req, res) => {
     } catch (error) {
         console.error('Error actualizando estado:', error);
         return res.status(500).json({ success: false, message: 'Error actualizando la inscripción.' });
+    }
+});
+
+api.put('/api/registrations/:id/attendance', async (req, res) => {
+    try {
+        const attendanceConfirmed = req.body?.attendanceConfirmed;
+        if (typeof attendanceConfirmed !== 'boolean') {
+            return res.status(400).json({ success: false, message: 'La confirmación de asistencia debe ser verdadera o falsa.' });
+        }
+
+        const item = await updateRegistrationAttendance(req.params.id, attendanceConfirmed);
+        if (!item) return res.status(404).json({ success: false, message: 'Inscripción no encontrada.' });
+        return res.json({ success: true, data: item });
+    } catch (error) {
+        console.error('Error actualizando confirmación de asistencia:', error);
+        return res.status(500).json({ success: false, message: 'No fue posible actualizar la asistencia.' });
     }
 });
 

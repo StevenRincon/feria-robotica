@@ -252,6 +252,19 @@ export class RegistrationService {
     );
   }
 
+  updateAttendance(id: string, attendanceConfirmed: boolean): Observable<Registration> {
+    return this.http.put<{ success: boolean; data: Registration }>(
+      `/api/registrations/${encodeURIComponent(id)}/attendance`,
+      { attendanceConfirmed }
+    ).pipe(
+      map(response => response.data),
+      tap(updated => {
+        this.registrations.update(items => items.map(item => item.id === updated.id ? updated : item));
+        this.currentRegistrationResult.update(item => item?.id === updated.id ? updated : item);
+      })
+    );
+  }
+
   updateRegistration(registration: Registration): Observable<Registration> {
     return this.http.put<{ success: boolean; data: Registration }>(
       `/api/registrations/${encodeURIComponent(registration.id)}`,

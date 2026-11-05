@@ -12,6 +12,7 @@ import {
   findRegistrationByCodeOrDocument,
   hasDuplicateParticipantDocuments,
   registrationsCollection,
+  updateRegistrationAttendance,
   updateRegistration,
   updateRegistrationStatus,
 } from './server/database';
@@ -441,6 +442,7 @@ app.post('/api/registrations', async (req, res) => {
       projectDescription: body.projectDescription || '',
       technicalSpecs: body.technicalSpecs || '',
       spaceRequirements: body.spaceRequirements || '',
+      attendanceConfirmed: false,
       status: 'Aprobado'
     };
 
@@ -465,6 +467,22 @@ app.put('/api/registrations/:id/status', async (req, res) => {
   const item = await updateRegistrationStatus(id, status);
   if (!item) return res.status(404).json({ success: false, message: 'Inscripción no encontrada' });
   return res.json({ success: true, message: 'Estado actualizado correctamente', data: item });
+});
+
+app.put('/api/registrations/:id/attendance', async (req, res) => {
+  const attendanceConfirmed = req.body?.attendanceConfirmed;
+  if (typeof attendanceConfirmed !== 'boolean') {
+    return res.status(400).json({ success: false, message: 'La confirmación de asistencia debe ser verdadera o falsa.' });
+  }
+
+  try {
+    const item = await updateRegistrationAttendance(req.params.id, attendanceConfirmed);
+    if (!item) return res.status(404).json({ success: false, message: 'Inscripción no encontrada.' });
+    return res.json({ success: true, data: item });
+  } catch (error) {
+    console.error('Error actualizando confirmación de asistencia:', error);
+    return res.status(500).json({ success: false, message: 'No fue posible actualizar la asistencia.' });
+  }
 });
 
 app.put('/api/registrations/:id', async (req, res) => {
