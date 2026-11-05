@@ -274,7 +274,7 @@ export class BadgeDownloadComponent {
     pdf.setFont('Montserrat', 'bold');
     pdf.setTextColor('#111111');
 
-    this.drawIdentity(pdf, studentName, studentDocument);
+    this.drawIdentity(pdf, studentName, studentDocument, isMentor);
 
     if (isMentor) return;
 
@@ -296,11 +296,17 @@ export class BadgeDownloadComponent {
     pdf.text(codeLayout.lines[0] || '', 22.5, 87.5, { align: 'center', maxWidth: 42 });
   }
 
-  private drawIdentity(pdf: import('jspdf').jsPDF, nameValue: string, documentValue: string): void {
+  private drawIdentity(
+    pdf: import('jspdf').jsPDF,
+    nameValue: string,
+    documentValue: string,
+    isMentor: boolean
+  ): void {
     pdf.setFont('Montserrat', 'bold');
     pdf.setTextColor('#111111');
-    const name = this.normalizeDisplayText(nameValue);
-    const nameLayout = this.fitText(pdf, name, 42, 12, 7.5, 2);
+    const normalizedName = this.normalizeDisplayText(nameValue);
+    const name = isMentor ? `Docente: ${normalizedName}` : normalizedName;
+    const nameLayout = this.fitText(pdf, name, 42, isMentor ? 10 : 12, 7.5, isMentor ? 3 : 2);
     pdf.setFontSize(nameLayout.fontSize);
     pdf.setTextColor('#111111');
     pdf.text(nameLayout.lines, 22.5, nameLayout.lines.length > 1 ? 52.5 : 57, {
