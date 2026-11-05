@@ -119,13 +119,17 @@ export class BadgeDownloadComponent {
   institutionCode = signal('');
   registrations = signal<Registration[]>([]);
   students = computed(() => this.registrations().flatMap(registration =>
-    registration.members
+    (registration.members || [])
       .filter(member => member.role === 'Líder / Capitán' || member.role === 'Integrante')
       .map(member => ({ registration, member }))
   ));
-  mentors = computed(() => this.registrations().filter(registration =>
-    Boolean(registration.mentorName?.trim() && registration.mentorDoc?.trim())
-  ));
+  mentors = computed(() => this.registrations()
+    .map(registration => ({
+      registration,
+      name: String(registration.mentorName ?? '').trim(),
+      document: String(registration.mentorDoc ?? '').trim()
+    }))
+    .filter(mentor => mentor.name && mentor.document));
   errorMessage = signal('');
   badgeError = signal('');
   isLoading = signal(false);
@@ -179,24 +183,19 @@ export class BadgeDownloadComponent {
   }
 
   async downloadBadges(): Promise<void> {
-    const badges = this.registrations().flatMap(registration => [
-      ...registration.members
-        .filter(member => member.role === 'Líder / Capitán' || member.role === 'Integrante')
-        .map(member => ({
-          registration,
-          name: member.fullName,
-          document: member.documentId,
-          isMentor: false
-        })),
-      ...(registration.mentorName?.trim() && registration.mentorDoc?.trim()
-        ? [{
-            registration,
-            name: registration.mentorName,
-            document: registration.mentorDoc,
-            isMentor: true
-          }]
-        : [])
-    ]);
+    const studentBadges = this.students().map(({ registration, member }) => ({
+      registration,
+      name: String(member.fullName ?? ''),
+      document: String(member.documentId ?? ''),
+      isMentor: false
+    }));
+    const mentorBadges = this.mentors().map(({ registration, name, document }) => ({
+      registration,
+      name,
+      document,
+      isMentor: true
+    }));
+    const badges = [...studentBadges, ...mentorBadges];
     if (badges.length === 0) {
       this.badgeError.set('No hay estudiantes ni docentes con documento registrado para generar escarapelas.');
       return;
@@ -275,7 +274,32 @@ export class BadgeDownloadComponent {
     pdf.setFont('Montserrat', 'bold');
     pdf.setTextColor('#111111');
 
-    const name = this.normalizeDisplayText(studentName);
+    this.drawIdentity(pdf, studentName, studentDocument);
+
+    if (isMentor) return;
+
+    const projectTitle = this.normalizeDisplayText(registration.projectTitle);
+    const projectLayout = this.fitText(pdf, projectTitle, 42, 8, 5, 2);
+    pdf.setFont('Montserrat', 'normal');
+    pdf.setFontSize(projectLayout.fontSize);
+    pdf.setTextColor('#17333d');
+    pdf.text(projectLayout.lines, 22.5, 65, {
+      align: 'center',
+      lineHeightFactor: 1.05,
+      maxWidth: 42
+    });
+
+    const codeLayout = this.fitText(pdf, registration.code.trim(), 42, 7, 5.5, 1);
+    pdf.setFont('Montserrat', 'normal');
+    pdf.setFontSize(codeLayout.fontSize);
+    pdf.setTextColor('#17333d');
+    pdf.text(codeLayout.lines[0] || '', 22.5, 87.5, { align: 'center', maxWidth: 42 });
+  }
+
+  private drawIdentity(pdf: import('jspdf').jsPDF, nameValue: string, documentValue: string): void {
+    pdf.setFont('Montserrat', 'bold');
+    pdf.setTextColor('#111111');
+    const name = this.normalizeDisplayText(nameValue);
     const nameLayout = this.fitText(pdf, name, 42, 12, 7.5, 2);
     pdf.setFontSize(nameLayout.fontSize);
     pdf.setTextColor('#111111');
@@ -285,30 +309,10 @@ export class BadgeDownloadComponent {
       maxWidth: 42
     });
 
-    if (!isMentor) {
-      const projectTitle = this.normalizeDisplayText(registration.projectTitle);
-      const projectLayout = this.fitText(pdf, projectTitle, 42, 8, 5, 2);
-      pdf.setFont('Montserrat', 'normal');
-      pdf.setFontSize(projectLayout.fontSize);
-      pdf.setTextColor('#17333d');
-      pdf.text(projectLayout.lines, 22.5, 65, {
-        align: 'center',
-        lineHeightFactor: 1.05,
-        maxWidth: 42
-      });
-    }
-
     pdf.setTextColor('#111111');
-    const documentLayout = this.fitText(pdf, studentDocument.trim(), 42, 9.5, 7, 1);
+    const documentLayout = this.fitText(pdf, String(documentValue).trim(), 42, 9.5, 7, 1);
     pdf.setFontSize(documentLayout.fontSize);
     pdf.text(documentLayout.lines[0] || '', 22.5, 81.5, { align: 'center', maxWidth: 42 });
-
-    if (!isMentor) {
-      const codeLayout = this.fitText(pdf, registration.code.trim(), 42, 7, 5.5, 1);
-      pdf.setFontSize(codeLayout.fontSize);
-      pdf.setTextColor('#17333d');
-      pdf.text(codeLayout.lines[0] || '', 22.5, 87.5, { align: 'center', maxWidth: 42 });
-    }
   }
 
   private fitText(
