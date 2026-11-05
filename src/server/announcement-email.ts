@@ -50,7 +50,7 @@ function createAnnouncementMessage(): AnnouncementMessage {
   const text = [
     'Estamos muy contentos de recibirlos. ¡Faltan solo dos días para nuestra Feria de Robótica!',
     '',
-    'Pueden ingresar a la sección “DESCARGA DE ESCARAPELAS” para descargar su escarapela. Recuerden presentarla el día del evento.',
+    '>Pueden ingresar a la sección <strong>Descarga de escarapelas</strong> para descargarla. Para realizar este proceso deben contar con el código DANE de la institución con la que realizaron la inscripción. Recuerden presentarla el día del evento.',
     '',
     `Descarga tu escarapela aquí: ${eventPage}`
   ].join('\n');
@@ -58,7 +58,7 @@ function createAnnouncementMessage(): AnnouncementMessage {
     <img src="${imageUrl}" alt="Faltan 2 días para la Feria de Robótica Nobsa" style="display:block;width:100%;max-width:680px;height:auto;margin:0 auto 24px">
     <h1 style="color:#087e8b">¡Faltan solo dos días!</h1>
     <p>Estamos muy contentos de recibirlos en nuestra Feria de Robótica.</p>
-    <p>Pueden ingresar a la sección <strong>DESCARGA DE ESCARAPELAS</strong> para descargar su escarapela. Recuerden presentarla el día del evento.</p>
+    <p>Pueden ingresar a la sección <strong>Descarga de escarapelas</strong> para descargarla. Para realizar este proceso deben contar con el código DANE de la institución con la que realizaron la inscripción. Recuerden presentarla el día del evento.</p>
     <p><a href="${eventPage}" style="display:inline-block;background:#087e8b;color:#fff;padding:12px 20px;text-decoration:none;font-weight:bold">DESCARGAR MI ESCARAPELA</a></p>
     <p>También pueden acceder desde este enlace: <a href="${eventPage}">${eventPage}</a></p>
   </div>`;

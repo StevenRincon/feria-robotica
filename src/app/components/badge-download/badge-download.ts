@@ -17,7 +17,7 @@ import { RegistrationService } from '../../services/registration.service';
           </div>
           <h2 class="text-4xl font-black uppercase text-white sm:text-5xl">DESCARGA DE <span class="text-[#00f3ff]">ESCARAPELAS</span></h2>
           <p class="mt-4 text-sm leading-relaxed text-gray-300 sm:text-base">
-            Consulta los equipos con el código institucional y descarga las escarapelas de sus estudiantes en un solo PDF.
+            Consulta los equipos con el código institucional y descarga en un solo PDF las escarapelas de estudiantes y docentes registrados.
           </p>
         </div>
 
@@ -58,7 +58,7 @@ import { RegistrationService } from '../../services/registration.service';
             @if (registrations().length > 0) {
               <div class="mt-8 border-t border-white/10 pt-6">
                 <p class="text-xs leading-relaxed text-gray-400">
-                  La plantilla incluye el diseño oficial. Se generará una escarapela por estudiante con su documento y el número de inscripción de su proyecto.
+                  Se generará una escarapela por estudiante con su documento y código de proyecto, y otra por docente registrado con solo su nombre y documento.
                 </p>
 
                 <button
@@ -80,7 +80,7 @@ import { RegistrationService } from '../../services/registration.service';
             @if (registrations().length > 0) {
               <div class="mb-5 flex flex-wrap items-end justify-between gap-3 border-b border-[#00f3ff]/20 pb-4">
                 <div>
-                  <p class="font-mono text-xs uppercase text-[#00f3ff]">{{ studentCount() }} estudiantes</p>
+                  <p class="font-mono text-xs uppercase text-[#00f3ff]">{{ studentCount() }} estudiantes · {{ mentorCount() }} docentes</p>
                   <h3 class="mt-1 text-xl font-black uppercase text-white">{{ registrations()[0].institution || 'Equipos registrados' }}</h3>
                 </div>
                 <p class="font-mono text-xs text-gray-500">{{ registrations().length }} proyectos</p>
@@ -91,8 +91,8 @@ import { RegistrationService } from '../../services/registration.service';
                     @if (member.role === 'Líder / Capitán' || member.role === 'Integrante') {
                       <article class="flex flex-col gap-1 py-4 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
                         <div class="min-w-0">
-                          <h4 class="truncate font-bold text-white">{{ member.fullName }}</h4>
-                          <p class="mt-1 text-xs text-gray-400">{{ registration.projectTitle }} · Inscripción: {{ registration.code }}</p>
+                          <h4 class="truncate font-bold text-white">{{ normalizeDisplayText(member.fullName) }}</h4>
+                          <p class="mt-1 text-xs text-gray-400">{{ normalizeDisplayText(registration.projectTitle) }} · Inscripción: {{ registration.code }}</p>
                         </div>
                         <span class="shrink-0 font-mono text-[10px] uppercase text-gray-500">{{ registration.categoryName }}</span>
                       </article>
@@ -123,6 +123,9 @@ export class BadgeDownloadComponent {
       .filter(member => member.role === 'Líder / Capitán' || member.role === 'Integrante')
       .map(member => ({ registration, member }))
   ));
+  mentors = computed(() => this.registrations().filter(registration =>
+    Boolean(registration.mentorName?.trim() && registration.mentorDoc?.trim())
+  ));
   errorMessage = signal('');
   badgeError = signal('');
   isLoading = signal(false);
@@ -130,6 +133,15 @@ export class BadgeDownloadComponent {
 
   studentCount(): number {
     return this.students().length;
+  }
+
+  mentorCount(): number {
+    return this.mentors().length;
+  }
+
+  normalizeDisplayText(value: string): string {
+    return value.trim().replace(/\s+/g, ' ').toLocaleLowerCase('es-CO')
+      .replace(/(^|[\s'-])(\p{L})/gu, (_, separator: string, letter: string) => separator + letter.toLocaleUpperCase('es-CO'));
   }
 
   updateInstitutionCode(event: Event): void {
@@ -167,9 +179,26 @@ export class BadgeDownloadComponent {
   }
 
   async downloadBadges(): Promise<void> {
-    const students = this.students();
-    if (students.length === 0) {
-      this.badgeError.set('No hay estudiantes registrados para generar las escarapelas.');
+    const badges = this.registrations().flatMap(registration => [
+      ...registration.members
+        .filter(member => member.role === 'Líder / Capitán' || member.role === 'Integrante')
+        .map(member => ({
+          registration,
+          name: member.fullName,
+          document: member.documentId,
+          isMentor: false
+        })),
+      ...(registration.mentorName?.trim() && registration.mentorDoc?.trim()
+        ? [{
+            registration,
+            name: registration.mentorName,
+            document: registration.mentorDoc,
+            isMentor: true
+          }]
+        : [])
+    ]);
+    if (badges.length === 0) {
+      this.badgeError.set('No hay estudiantes ni docentes con documento registrado para generar escarapelas.');
       return;
     }
 
@@ -181,9 +210,9 @@ export class BadgeDownloadComponent {
       await this.loadMontserratFonts(pdf);
       const template = await this.loadBadgeTemplate();
 
-      students.forEach(({ registration, member }, index) => {
+      badges.forEach(({ registration, name, document, isMentor }, index) => {
         if (index > 0) pdf.addPage([100, 120], 'portrait');
-        this.drawBadge(pdf, registration, member.fullName, member.documentId, template);
+        this.drawBadge(pdf, registration, name, document, template, isMentor);
       });
 
       pdf.save(`Escarapelas_Feria_Robotica_Nobsa_${this.institutionCode()}.pdf`);
@@ -239,13 +268,14 @@ export class BadgeDownloadComponent {
     registration: Registration,
     studentName: string,
     studentDocument: string,
-    template: string
+    template: string,
+    isMentor: boolean
   ): void {
     pdf.addImage(template, 'JPEG', 0, 0, 100, 120);
     pdf.setFont('Montserrat', 'bold');
     pdf.setTextColor('#111111');
 
-    const name = studentName.trim();
+    const name = this.normalizeDisplayText(studentName);
     const nameLayout = this.fitText(pdf, name, 42, 12, 7.5, 2);
     pdf.setFontSize(nameLayout.fontSize);
     pdf.setTextColor('#111111');
@@ -255,26 +285,30 @@ export class BadgeDownloadComponent {
       maxWidth: 42
     });
 
-    const projectTitle = registration.projectTitle.trim();
-    const projectLayout = this.fitText(pdf, projectTitle, 42, 8, 5, 2);
-    pdf.setFont('Montserrat', 'normal');
-    pdf.setFontSize(projectLayout.fontSize);
-    pdf.setTextColor('#17333d');
-    pdf.text(projectLayout.lines, 22.5, 65, {
-      align: 'center',
-      lineHeightFactor: 1.05,
-      maxWidth: 42
-    });
+    if (!isMentor) {
+      const projectTitle = this.normalizeDisplayText(registration.projectTitle);
+      const projectLayout = this.fitText(pdf, projectTitle, 42, 8, 5, 2);
+      pdf.setFont('Montserrat', 'normal');
+      pdf.setFontSize(projectLayout.fontSize);
+      pdf.setTextColor('#17333d');
+      pdf.text(projectLayout.lines, 22.5, 65, {
+        align: 'center',
+        lineHeightFactor: 1.05,
+        maxWidth: 42
+      });
+    }
 
     pdf.setTextColor('#111111');
     const documentLayout = this.fitText(pdf, studentDocument.trim(), 42, 9.5, 7, 1);
     pdf.setFontSize(documentLayout.fontSize);
     pdf.text(documentLayout.lines[0] || '', 22.5, 81.5, { align: 'center', maxWidth: 42 });
 
-    const codeLayout = this.fitText(pdf, registration.code.trim(), 42, 7, 5.5, 1);
-    pdf.setFontSize(codeLayout.fontSize);
-    pdf.setTextColor('#17333d');
-    pdf.text(codeLayout.lines[0] || '', 22.5, 87.5, { align: 'center', maxWidth: 42 });
+    if (!isMentor) {
+      const codeLayout = this.fitText(pdf, registration.code.trim(), 42, 7, 5.5, 1);
+      pdf.setFontSize(codeLayout.fontSize);
+      pdf.setTextColor('#17333d');
+      pdf.text(codeLayout.lines[0] || '', 22.5, 87.5, { align: 'center', maxWidth: 42 });
+    }
   }
 
   private fitText(
