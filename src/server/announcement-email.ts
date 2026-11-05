@@ -62,8 +62,8 @@ function createAnnouncementMessage(): AnnouncementMessage {
     `Ubicación del evento: ${eventLocation}`
   ].join('\n');
   const html = `<div style="font-family:Arial,sans-serif;color:#17212b;max-width:680px;margin:0 auto">
-    <img src="${imageUrl}" alt="Faltan 2 días para la Feria de Robótica Nobsa" style="display:block;width:100%;max-width:680px;height:auto;margin:0 auto 24px">
-    <h1 style="color:#087e8b">¡Faltan solo dos días!</h1>
+    <img src="${imageUrl}" alt="Falta solo un día para la Feria de Robótica Nobsa" style="display:block;width:100%;max-width:680px;height:auto;margin:0 auto 24px">
+    <h1 style="color:#087e8b">¡Falta solo un día!</h1>
     <p>Estamos muy contentos de recibirlos en nuestra Feria de Robótica.</p>
     <p>Para descargar las escarapelas solo necesitan el código DANE o NIT de la institución educativa.</p>
     <p><a href="${badgePage}" style="display:inline-block;background:#087e8b;color:#fff;padding:12px 20px;text-decoration:none;font-weight:bold">DESCARGAR ESCARAPELAS</a></p>
