@@ -36,20 +36,20 @@ import { RegistrationService } from '../../services/registration.service';
                 [value]="institutionCode()"
                 (input)="updateInstitutionCode($event)"
                 (keydown.enter)="searchInstitution()"
-                placeholder="12 dígitos"
+                placeholder="DANE (12) o NIT (9-10)"
                 class="min-w-0 flex-1 border border-[#00f3ff]/30 bg-[#080b12] px-4 py-3 font-mono text-white outline-none placeholder:text-gray-600 focus:border-[#00f3ff]"
               />
               <button
                 type="button"
                 (click)="searchInstitution()"
-                [disabled]="isLoading() || institutionCode().length !== 12"
+                [disabled]="isLoading() || !isInstitutionCodeValid()"
                 class="flex items-center justify-center gap-2 bg-[#00d9e8] px-5 py-3 text-sm font-black uppercase text-[#061018] transition-colors hover:bg-white disabled:cursor-not-allowed disabled:opacity-40">
                 <mat-icon>{{ isLoading() ? 'hourglass_top' : 'search' }}</mat-icon>
                 {{ isLoading() ? 'Buscando' : 'Buscar' }}
               </button>
             </div>
 
-            <p class="mt-3 text-xs leading-relaxed text-gray-500">Ingresa los 12 dígitos del código registrado en la inscripción.</p>
+            <p class="mt-3 text-xs leading-relaxed text-gray-500">Ingresa el código DANE (12 dígitos) o el NIT (9 o 10 dígitos) registrado en la inscripción.</p>
 
             @if (errorMessage()) {
               <p role="alert" class="mt-4 border-l-2 border-amber-400 bg-amber-400/10 px-3 py-2 text-sm text-amber-200">{{ errorMessage() }}</p>
@@ -143,6 +143,10 @@ export class BadgeDownloadComponent {
     return this.mentors().length;
   }
 
+  isInstitutionCodeValid(): boolean {
+    return /^(?:\d{9,10}|\d{12})$/.test(this.institutionCode());
+  }
+
   normalizeDisplayText(value: string): string {
     return value.trim().replace(/\s+/g, ' ').toLocaleLowerCase('es-CO')
       .replace(/(^|[\s'-])(\p{L})/gu, (_, separator: string, letter: string) => separator + letter.toLocaleUpperCase('es-CO'));
@@ -159,8 +163,8 @@ export class BadgeDownloadComponent {
 
   searchInstitution(): void {
     const institutionNit = this.institutionCode();
-    if (!/^\d{12}$/.test(institutionNit)) {
-      this.errorMessage.set('El código institucional debe tener exactamente 12 dígitos.');
+    if (!this.isInstitutionCodeValid()) {
+      this.errorMessage.set('Ingresa un NIT de 9 o 10 dígitos, o un código DANE de 12 dígitos.');
       return;
     }
 

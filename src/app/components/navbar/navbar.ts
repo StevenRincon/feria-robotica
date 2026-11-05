@@ -40,7 +40,7 @@ import { AiAssistantService } from '../../services/ai-assistant.service';
             <a href="#admin" (click)="scrollTo('admin')" class="px-3 py-2 text-amber-400 hover:text-amber-300 hover:bg-amber-500/10 transition-colors flex items-center gap-1 font-bold">
               <mat-icon class="text-sm">admin_panel_settings</mat-icon> Admin
             </a>
-            <a href="#admin" (click)="scrollTo('admin')" class="px-3 py-2 text-gray-300 hover:text-[#00f3ff] hover:bg-[#00f3ff]/10 transition-colors">Escarapelas</a>
+            <a href="#escarapelas" (click)="scrollTo('escarapelas')" class="px-3 py-2 text-gray-300 hover:text-[#00f3ff] hover:bg-[#00f3ff]/10 transition-colors">Escarapelas</a>
           </nav>
 
           <!-- Action Buttons -->
@@ -100,7 +100,7 @@ import { AiAssistantService } from '../../services/ai-assistant.service';
           <a href="#galeria" (click)="scrollTo('galeria')" class="block px-3 py-2.5 text-gray-200 hover:bg-[#00f3ff]/10 hover:text-[#00f3ff]">Muestra Robótica</a>
           <a href="#faq" (click)="scrollTo('faq')" class="block px-3 py-2.5 text-gray-200 hover:bg-[#00f3ff]/10 hover:text-[#00f3ff]">Preguntas Frecuentes</a>
           <a href="#admin" (click)="scrollTo('admin')" class="block px-3 py-2.5 text-amber-400 hover:bg-amber-500/10">Panel de Administración</a>
-          <a href="#admin" (click)="scrollTo('admin')" class="block px-3 py-2.5 text-gray-200 hover:bg-[#00f3ff]/10 hover:text-[#00f3ff]">Descargar Escarapelas</a>
+          <a href="#escarapelas" (click)="scrollTo('escarapelas')" class="block px-3 py-2.5 text-gray-200 hover:bg-[#00f3ff]/10 hover:text-[#00f3ff]">Descargar Escarapelas</a>
           
           <div class="pt-4 flex flex-col gap-2">
             <a href="#inscripcion" (click)="scrollTo('inscripcion')" class="w-full text-center cyber-button-primary py-3 text-xs flex items-center justify-center gap-2">

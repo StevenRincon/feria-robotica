@@ -264,9 +264,10 @@ app.get('/api/registrations', async (req, res) => {
   if (teacher) filters.push({ mentorName: { $regex: teacher.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), $options: 'i' } });
   if (teacherDoc) filters.push({ mentorDoc: { $regex: teacherDoc.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), $options: 'i' } });
   if (institutionNitInput) {
-    const institutionNit = normalizeInstitutionDane(institutionNitInput);
-    if (!institutionNit) return res.status(400).json({ success: false, message: 'El Código DANE debe contener exactamente 12 dígitos, sin puntos ni comas.' });
-    filters.push({ institutionNit });
+    if (!/^(?:\d{9,10}|\d{12})$/.test(institutionNitInput)) {
+      return res.status(400).json({ success: false, message: 'El NIT debe contener 9 o 10 dígitos, o el Código DANE exactamente 12 dígitos, sin puntos ni comas.' });
+    }
+    filters.push({ institutionNit: institutionNitInput });
   }
   if (filters.length) query['$and'] = filters;
 
