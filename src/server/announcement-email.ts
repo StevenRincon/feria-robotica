@@ -9,7 +9,10 @@ const eventLocation = 'https://maps.app.goo.gl/zgff8TjSKKngPFrZ7';
 interface AnnouncementMessage {
   text: string;
   html: string;
+  subject: string;
 }
+
+export type ReminderEmailType = 'event-details' | 'comfortable-footwear';
 
 export interface AnnouncementEmailResult {
   sent: number;
@@ -23,6 +26,10 @@ export function isReminderEmailConfigured(): boolean {
 
 export function isValidAnnouncementEmail(value: unknown): value is string {
   return typeof value === 'string' && emailPattern.test(value.trim());
+}
+
+export function isReminderEmailType(value: unknown): value is ReminderEmailType {
+  return value === 'event-details' || value === 'comfortable-footwear';
 }
 
 export function getAnnouncementRecipients(registrations: Registration[]): string[] {
@@ -46,9 +53,32 @@ export function getAnnouncementRecipients(registrations: Registration[]): string
   return [...recipients];
 }
 
-function createAnnouncementMessage(): AnnouncementMessage {
+function createAnnouncementMessage(emailType: ReminderEmailType): AnnouncementMessage {
   const imageBaseUrl = process.env['PUBLIC_APP_URL'] || eventPage;
   const imageUrl = new URL('/1dia.jpeg', imageBaseUrl).toString();
+
+  if (emailType === 'comfortable-footwear') {
+    const text = [
+      '¡Nos vemos muy pronto en la Feria de Robótica Nobsa!',
+      '',
+      'Como última recomendación, les sugerimos asistir con calzado cómodo, preferiblemente tenis. Durante la jornada podrán caminar y permanecer de pie por varios momentos, así que este tipo de calzado les ayudará a disfrutar mejor el evento.',
+      '',
+      '¡Los esperamos!'
+    ].join('\n');
+    const html = `<div style="font-family:Arial,sans-serif;color:#17212b;max-width:680px;margin:0 auto">
+      <img src="${imageUrl}" alt="Feria de Robótica Nobsa" style="display:block;width:100%;max-width:680px;height:auto;margin:0 auto 24px">
+      <h1 style="color:#087e8b">¡Última recomendación para la feria!</h1>
+      <p>¡Nos vemos muy pronto en la Feria de Robótica Nobsa!</p>
+      <p>Como última recomendación, les sugerimos asistir con <strong>calzado cómodo, preferiblemente tenis</strong>. Durante la jornada podrán caminar y permanecer de pie por varios momentos, así que este tipo de calzado les ayudará a disfrutar mejor el evento.</p>
+      <p>¡Los esperamos!</p>
+    </div>`;
+    return {
+      text,
+      html,
+      subject: 'Última recomendación para la Feria de Robótica Nobsa'
+    };
+  }
+
   const text = [
     'Estamos muy contentos de recibirlos. ¡Faltan solo dos días para nuestra Feria de Robótica!',
     '',
@@ -75,7 +105,11 @@ function createAnnouncementMessage(): AnnouncementMessage {
     </div>
     <p>Ubicación del evento: <a href="${eventLocation}">Ver ubicación en Google Maps</a></p>
   </div>`;
-  return { text, html };
+  return {
+    text,
+    html,
+    subject: '¡Falta un día para la Feria de Robótica Nobsa!'
+  };
 }
 
 function createTransporter(): Transporter {
@@ -92,10 +126,13 @@ function createTransporter(): Transporter {
   });
 }
 
-export async function sendTwoDaysReminder(recipients: string[]): Promise<AnnouncementEmailResult> {
+export async function sendTwoDaysReminder(
+  recipients: string[],
+  emailType: ReminderEmailType = 'event-details'
+): Promise<AnnouncementEmailResult> {
   const user = process.env['GMAIL_USER'];
   if (!user) throw new Error('El correo no está configurado.');
-  const message = createAnnouncementMessage();
+  const message = createAnnouncementMessage(emailType);
   const transporter = createTransporter();
   const result: AnnouncementEmailResult = { sent: 0, failed: 0, total: recipients.length };
 
@@ -111,7 +148,6 @@ export async function sendTwoDaysReminder(recipients: string[]): Promise<Announc
           const response = await transporter.sendMail({
             from: { name: 'Feria de Robótica Nobsa', address: user },
             to: recipient,
-            subject: '¡Falta un día para la Feria de Robótica Nobsa!',
             ...message
           });
 

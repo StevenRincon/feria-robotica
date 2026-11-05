@@ -226,18 +226,25 @@ export class RegistrationService {
     );
   }
 
-  sendTwoDaysReminder(password: string): Observable<{ sent: number; failed: number; total: number }> {
+  sendTwoDaysReminder(
+    password: string,
+    emailType: 'event-details' | 'comfortable-footwear'
+  ): Observable<{ sent: number; failed: number; total: number }> {
     return this.http.post<{ sent: number; failed: number; total: number }>(
       '/api/admin/jobs/two-days-reminder',
-      {},
+      { emailType },
       { headers: { 'x-admin-password': password } }
     );
   }
 
-  sendTwoDaysReminderTest(password: string, email: string): Observable<boolean> {
+  sendTwoDaysReminderTest(
+    password: string,
+    email: string,
+    emailType: 'event-details' | 'comfortable-footwear'
+  ): Observable<boolean> {
     return this.http.post<{ success: boolean }>(
       '/api/admin/jobs/two-days-reminder/test',
-      { email },
+      { email, emailType },
       { headers: { 'x-admin-password': password } }
     ).pipe(map(response => response.success));
   }

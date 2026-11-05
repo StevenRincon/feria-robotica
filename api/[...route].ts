@@ -3,7 +3,7 @@ import { randomUUID } from 'node:crypto';
 import type { Registration, RegistrationStatus } from '../src/app/models/registration.model';
 import { createParticipationCertificate } from '../src/server/certificate.js';
 import { sendRegistrationConfirmation } from '../src/server/registration-email.js';
-import { getAnnouncementRecipients, isReminderEmailConfigured, isValidAnnouncementEmail, sendTwoDaysReminder } from '../src/server/announcement-email.js';
+import { getAnnouncementRecipients, isReminderEmailConfigured, isReminderEmailType, isValidAnnouncementEmail, sendTwoDaysReminder } from '../src/server/announcement-email.js';
 import { isValidAdminPassword } from '../src/server/admin-auth.js';
 import { normalizeInstitutionDane } from '../src/server/institution-nit.js';
 import { calculateRegistrationStats, getParticipantDocumentIds } from '../src/server/registration-stats.js';
@@ -43,13 +43,18 @@ api.post('/api/admin/jobs/two-days-reminder/test', async (req, res) => {
         return res.status(503).json({ success: false, message: 'El servicio de correo no está configurado en el servidor.' });
     }
 
+    const emailType = req.body?.emailType ?? 'event-details';
+    if (!isReminderEmailType(emailType)) {
+        return res.status(400).json({ success: false, message: 'Selecciona un tipo de correo válido.' });
+    }
+
     const recipient = req.body?.email;
     if (!isValidAnnouncementEmail(recipient)) {
         return res.status(400).json({ success: false, message: 'Ingresa una dirección de correo válida.' });
     }
 
     try {
-        const result = await sendTwoDaysReminder([recipient.trim().toLowerCase()]);
+        const result = await sendTwoDaysReminder([recipient.trim().toLowerCase()], emailType);
         if (result.failed) {
             return res.status(502).json({ success: false, message: 'No fue posible entregar el correo de prueba.' });
         }
@@ -69,6 +74,11 @@ api.post('/api/admin/jobs/two-days-reminder', async (req, res) => {
         return res.status(503).json({ success: false, message: 'El servicio de correo no está configurado en el servidor.' });
     }
 
+    const emailType = req.body?.emailType ?? 'event-details';
+    if (!isReminderEmailType(emailType)) {
+        return res.status(400).json({ success: false, message: 'Selecciona un tipo de correo válido.' });
+    }
+
     try {
         const registrations = await (await registrationsCollection()).find().toArray();
         const recipients = getAnnouncementRecipients(registrations);
@@ -76,7 +86,7 @@ api.post('/api/admin/jobs/two-days-reminder', async (req, res) => {
             return res.status(422).json({ success: false, message: 'No hay correos válidos registrados para enviar el recordatorio.' });
         }
 
-        const result = await sendTwoDaysReminder(recipients);
+        const result = await sendTwoDaysReminder(recipients, emailType);
         return res.json({ success: true, ...result });
     } catch (error) {
         console.error('Error ejecutando el job de recordatorio por correo:', error);

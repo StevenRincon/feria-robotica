@@ -2,6 +2,7 @@ import type { Request, Response } from 'express';
 import {
   getAnnouncementRecipients,
   isReminderEmailConfigured,
+  isReminderEmailType,
   isValidAnnouncementEmail,
   sendTwoDaysReminder
 } from './announcement-email.js';
@@ -30,6 +31,12 @@ export async function sendReminderTestHandler(req: Request, res: Response): Prom
   }
   if (!isAuthorized(req, res) || !isEmailConfigured(res)) return;
 
+  const emailType = req.body?.emailType ?? 'event-details';
+  if (!isReminderEmailType(emailType)) {
+    res.status(400).json({ success: false, message: 'Selecciona un tipo de correo válido.' });
+    return;
+  }
+
   const recipient = req.body?.email;
   if (!isValidAnnouncementEmail(recipient)) {
     res.status(400).json({ success: false, message: 'Ingresa una dirección de correo válida.' });
@@ -38,7 +45,7 @@ export async function sendReminderTestHandler(req: Request, res: Response): Prom
 
   try {
     const email = recipient.trim().toLowerCase();
-    const result = await sendTwoDaysReminder([email]);
+    const result = await sendTwoDaysReminder([email], emailType);
     if (result.failed) {
       res.status(502).json({ success: false, message: 'No fue posible entregar el correo de prueba.' });
       return;
@@ -57,6 +64,12 @@ export async function sendBulkReminderHandler(req: Request, res: Response): Prom
   }
   if (!isAuthorized(req, res) || !isEmailConfigured(res)) return;
 
+  const emailType = req.body?.emailType ?? 'event-details';
+  if (!isReminderEmailType(emailType)) {
+    res.status(400).json({ success: false, message: 'Selecciona un tipo de correo válido.' });
+    return;
+  }
+
   try {
     const registrations = await (await registrationsCollection()).find().toArray();
     const recipients = getAnnouncementRecipients(registrations);
@@ -65,7 +78,7 @@ export async function sendBulkReminderHandler(req: Request, res: Response): Prom
       return;
     }
 
-    const result = await sendTwoDaysReminder(recipients);
+    const result = await sendTwoDaysReminder(recipients, emailType);
     res.status(200).json({ success: true, ...result });
   } catch (error) {
     console.error('Error ejecutando el job de recordatorio por correo:', error);

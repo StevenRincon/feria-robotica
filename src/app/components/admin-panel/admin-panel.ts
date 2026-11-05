@@ -94,10 +94,21 @@ import { areCertificatesAvailable, CERTIFICATE_AVAILABILITY_MESSAGE } from '../.
         </div>
 
         <section class="grid lg:grid-cols-2 gap-5 bg-[#11141d] border border-[#00f3ff]/30 p-5 sm:p-6 mb-8">
+          <div class="space-y-2 lg:col-span-2">
+            <label for="reminderEmailType" class="block text-xs font-mono font-bold text-white uppercase">Correo que se enviará</label>
+            <select
+              id="reminderEmailType"
+              name="reminderEmailType"
+              [(ngModel)]="reminderEmailType"
+              class="w-full sm:max-w-xl px-3 py-2 bg-[#05060a] border border-[#00f3ff]/30 text-white text-sm focus:outline-none focus:border-[#00f3ff]">
+              <option value="event-details">Información y recomendaciones generales del evento</option>
+              <option value="comfortable-footwear">Última recomendación: asistir con calzado cómodo, preferiblemente tenis</option>
+            </select>
+          </div>
           <div class="space-y-3">
             <div>
               <h3 class="text-sm font-mono font-bold text-white uppercase">Probar correo del evento</h3>
-              <p class="text-xs text-gray-400 mt-1">Envía el mensaje y la imagen a una dirección para revisar cómo se ve.</p>
+              <p class="text-xs text-gray-400 mt-1">Envía el correo seleccionado a una dirección para revisar cómo se ve.</p>
             </div>
             <div class="flex flex-col sm:flex-row gap-2">
               <input
@@ -586,6 +597,7 @@ export class AdminPanelComponent implements OnDestroy {
   reminderCompleted = signal(false);
   reminderFailed = signal(false);
   reminderMessage = signal('');
+  reminderEmailType: 'event-details' | 'comfortable-footwear' = 'event-details';
   reminderTestEmail = '';
   testSending = signal(false);
   testFailed = signal(false);
@@ -639,11 +651,14 @@ export class AdminPanelComponent implements OnDestroy {
 
   sendTwoDaysReminder(): void {
     if (this.reminderSending() || this.reminderCompleted() || !this.adminAccessPassword) return;
-    if (!confirm('Se enviará un correo individual a cada dirección válida registrada. La imagen se mostrará dentro del mensaje. ¿Deseas continuar?')) return;
+    const emailDescription = this.reminderEmailType === 'event-details'
+      ? 'información y recomendaciones generales del evento'
+      : 'la recomendación de asistir con calzado cómodo, preferiblemente tenis';
+    if (!confirm(`Se enviará el correo de ${emailDescription} a cada dirección válida registrada. ¿Deseas continuar?`)) return;
 
     this.reminderSending.set(true);
     this.reminderMessage.set('');
-    this.regService.sendTwoDaysReminder(this.adminAccessPassword).subscribe({
+    this.regService.sendTwoDaysReminder(this.adminAccessPassword, this.reminderEmailType).subscribe({
       next: result => {
         this.reminderSending.set(false);
         this.reminderCompleted.set(true);
@@ -666,11 +681,14 @@ export class AdminPanelComponent implements OnDestroy {
   sendReminderTest(): void {
     if (this.testSending() || !this.isReminderTestEmailValid() || !this.adminAccessPassword) return;
     const recipient = this.reminderTestEmail.trim();
-    if (!confirm(`Se enviará un correo de prueba con el mismo contenido a ${recipient}. ¿Deseas continuar?`)) return;
+    const emailDescription = this.reminderEmailType === 'event-details'
+      ? 'información y recomendaciones generales del evento'
+      : 'la recomendación de asistir con calzado cómodo, preferiblemente tenis';
+    if (!confirm(`Se enviará un correo de prueba con ${emailDescription} a ${recipient}. ¿Deseas continuar?`)) return;
 
     this.testSending.set(true);
     this.testMessage.set('');
-    this.regService.sendTwoDaysReminderTest(this.adminAccessPassword, recipient).subscribe({
+    this.regService.sendTwoDaysReminderTest(this.adminAccessPassword, recipient, this.reminderEmailType).subscribe({
       next: () => {
         this.testSending.set(false);
         this.testFailed.set(false);
