@@ -69,8 +69,10 @@ function createAnnouncementMessage(): AnnouncementMessage {
     <p><a href="${badgePage}" style="display:inline-block;background:#087e8b;color:#fff;padding:12px 20px;text-decoration:none;font-weight:bold">DESCARGAR ESCARAPELAS</a></p>
     <p>Enlace directo a la sección: <a href="${badgePage}">${badgePage}</a></p>
     <p>Esperamos contar con el ingreso de los participantes alrededor de las 7:30 de la mañana.</p>
-    <p>Si los datos de algún estudiante o docente quedaron incorrectos en la inscripción, podrán corregirse el día del evento.</p>
-    <p>Si algún participante inscrito no puede asistir, podrá ser reemplazado por otro estudiante. El cambio de participante se podrá realizar el día del evento.</p>
+    <div style="margin:20px 0;padding:16px 20px;background:#fff7e6;border-left:4px solid #e08a00;color:#704400">
+      <p style="margin:0 0 12px"><strong>¿Necesitan corregir algún dato?</strong> Si el nombre u otro dato de un estudiante o docente quedó incorrecto en la inscripción, podrán corregirlo el día del evento.</p>
+      <p style="margin:0"><strong>¿Algún participante no puede asistir?</strong> Puede asistir otro estudiante en su reemplazo; el cambio de participante se podrá realizar el día del evento.</p>
+    </div>
     <p>Ubicación del evento: <a href="${eventLocation}">Ver ubicación en Google Maps</a></p>
   </div>`;
   return { text, html };
