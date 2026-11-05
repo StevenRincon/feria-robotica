@@ -48,7 +48,7 @@ export function getAnnouncementRecipients(registrations: Registration[]): string
 
 function createAnnouncementMessage(): AnnouncementMessage {
   const imageBaseUrl = process.env['PUBLIC_APP_URL'] || eventPage;
-  const imageUrl = new URL('/2dias.jpeg', imageBaseUrl).toString();
+  const imageUrl = new URL('/1dia.jpeg', imageBaseUrl).toString();
   const text = [
     'Estamos muy contentos de recibirlos. ¡Faltan solo dos días para nuestra Feria de Robótica!',
     '',
@@ -111,7 +111,7 @@ export async function sendTwoDaysReminder(recipients: string[]): Promise<Announc
           const response = await transporter.sendMail({
             from: { name: 'Feria de Robótica Nobsa', address: user },
             to: recipient,
-            subject: '¡Faltan dos días para la Feria de Robótica Nobsa!',
+            subject: '¡Falta un día para la Feria de Robótica Nobsa!',
             ...message
           });
 

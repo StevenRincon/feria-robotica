@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { afterNextRender, ChangeDetectionStrategy, Component } from '@angular/core';
 import { NavbarComponent } from './components/navbar/navbar';
 import { HeroComponent } from './components/hero/hero';
 import { EventInfoComponent } from './components/event-info/event-info';
@@ -32,4 +32,13 @@ import { AiChatWidgetComponent } from './components/ai-chat-widget/ai-chat-widge
   templateUrl: './app.html',
   styleUrl: './app.css',
 })
-export class App {}
+export class App {
+  constructor() {
+    afterNextRender(() => {
+      const targetId = window.location.hash.slice(1);
+      if (targetId) {
+        document.getElementById(decodeURIComponent(targetId))?.scrollIntoView({ block: 'start' });
+      }
+    });
+  }
+}
