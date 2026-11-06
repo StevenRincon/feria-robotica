@@ -192,10 +192,14 @@ export class RegistrationService {
     );
   }
 
-  createRegistration(data: Partial<Registration>): Observable<Registration> {
+  createRegistration(data: Partial<Registration>, adminPassword?: string): Observable<Registration> {
     this.loading.set(true);
     this.confirmationEmailSent.set(null);
-    return this.http.post<{ success: boolean; data: Registration; emailSent?: boolean }>('/api/registrations', data).pipe(
+    return this.http.post<{ success: boolean; data: Registration; emailSent?: boolean }>(
+      '/api/registrations',
+      data,
+      adminPassword ? { headers: { 'x-admin-password': adminPassword } } : {}
+    ).pipe(
       map(res => {
         const emailSent = res.emailSent === true;
         this.confirmationEmailSent.set(emailSent);
@@ -207,7 +211,7 @@ export class RegistrationService {
         return res.data;
       }),
       tap(newReg => {
-        this.currentRegistrationResult.set(newReg);
+        if (!adminPassword) this.currentRegistrationResult.set(newReg);
         this.loadRegistrations().subscribe();
         this.loadStats().subscribe();
         this.loading.set(false);

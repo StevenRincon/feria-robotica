@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, ElementRef, ViewChild, computed, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ElementRef, ViewChild, computed, inject, input, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, Validators, FormArray, AbstractControl, ValidationErrors } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
@@ -12,7 +12,7 @@ import { GLOBAL_PARTICIPANT_LIMIT } from '../../../shared/registration-capacity'
   imports: [CommonModule, ReactiveFormsModule, MatIconModule],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <section id="inscripcion" class="py-20 relative bg-[#05060a]">
+    <section [id]="adminPassword() ? 'inscripcion-admin' : 'inscripcion'" class="py-20 relative bg-[#05060a]">
       <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         
         <!-- Header -->
@@ -501,6 +501,7 @@ import { GLOBAL_PARTICIPANT_LIMIT } from '../../../shared/registration-capacity'
 export class RegistrationFormComponent {
   regService = inject(RegistrationService);
   fb = inject(FormBuilder);
+  readonly adminPassword = input('');
 
   @ViewChild('badgeContainer') badgeContainer!: ElementRef;
 
@@ -508,7 +509,8 @@ export class RegistrationFormComponent {
   isSubmitting = signal<boolean>(false);
   capacityReached = signal<boolean>(false);
   isRegistrationClosed = computed(() =>
-    this.capacityReached() || (this.regService.stats()?.totalParticipants ?? 0) >= GLOBAL_PARTICIPANT_LIMIT
+    !this.adminPassword() &&
+    (this.capacityReached() || (this.regService.stats()?.totalParticipants ?? 0) >= GLOBAL_PARTICIPANT_LIMIT)
   );
   readonly globalParticipantLimit = GLOBAL_PARTICIPANT_LIMIT;
   createdRegistration = this.regService.currentRegistrationResult;
@@ -603,7 +605,10 @@ export class RegistrationFormComponent {
     const formValue = this.regForm.value;
     const members = (formValue.members || []).filter(member => member?.fullName || member?.documentId);
 
-    this.regService.createRegistration({ ...formValue, members } as Partial<Registration>).subscribe({
+    this.regService.createRegistration(
+      { ...formValue, members } as Partial<Registration>,
+      this.adminPassword() || undefined
+    ).subscribe({
       next: registration => {
         this.isSubmitting.set(false);
         const emailSent = this.regService.confirmationEmailSent();
@@ -614,6 +619,7 @@ export class RegistrationFormComponent {
             ? `La confirmación fue enviada al correo ${registration.mentorEmail}.`
             : 'La inscripción quedó guardada, pero no fue posible enviar el correo de confirmación.'
         });
+        if (this.adminPassword()) this.resetForm();
       },
       error: (err) => {
         console.error('Error creating registration:', err);
@@ -652,7 +658,7 @@ export class RegistrationFormComponent {
   }
 
   resetForm(): void {
-    this.regService.currentRegistrationResult.set(null);
+    if (!this.adminPassword()) this.regService.currentRegistrationResult.set(null);
     this.regForm.reset({
       category: 'automatizacion',
       institutionType: 'Colegio / I.E.',

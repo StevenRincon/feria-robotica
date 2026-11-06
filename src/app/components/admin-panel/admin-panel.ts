@@ -5,10 +5,11 @@ import { MatIconModule } from '@angular/material/icon';
 import { RegistrationService } from '../../services/registration.service';
 import { Registration, RegistrationStatus } from '../../models/registration.model';
 import { areCertificatesAvailable, CERTIFICATE_AVAILABILITY_MESSAGE } from '../../../shared/certificate-availability';
+import { RegistrationFormComponent } from '../registration-form/registration-form';
 
 @Component({
   selector: 'app-admin-panel',
-  imports: [CommonModule, FormsModule, MatIconModule],
+  imports: [CommonModule, FormsModule, MatIconModule, RegistrationFormComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   styles: [`
     .admin-edit-input {
@@ -154,6 +155,14 @@ import { areCertificatesAvailable, CERTIFICATE_AVAILABILITY_MESSAGE } from '../.
               </p>
             }
           </div>
+        </section>
+
+        <section class="bg-[#11141d] border border-emerald-400/30 p-5 sm:p-6 mb-8">
+          <div class="mb-5">
+            <h3 class="text-sm font-mono font-bold text-white uppercase">Inscripción adicional para administrador</h3>
+            <p class="text-xs text-gray-400 mt-1">Este formulario permite registrar participantes aunque se haya alcanzado el límite público de cupos.</p>
+          </div>
+          <app-registration-form [adminPassword]="adminAccessPassword" />
         </section>
 
         <!-- KPI Metrics Grid -->
@@ -581,7 +590,7 @@ import { areCertificatesAvailable, CERTIFICATE_AVAILABILITY_MESSAGE } from '../.
 export class AdminPanelComponent implements OnDestroy {
   private readonly sessionDurationMs = 3 * 60 * 1000;
   private sessionTimeoutId: ReturnType<typeof setTimeout> | null = null;
-  private adminAccessPassword = '';
+  adminAccessPassword = '';
   regService = inject(RegistrationService);
   readonly certificateAvailabilityMessage = CERTIFICATE_AVAILABILITY_MESSAGE;
 

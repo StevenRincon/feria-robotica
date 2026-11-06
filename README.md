@@ -27,7 +27,7 @@ La colección `registrations` se crea automáticamente al iniciar el servidor co
 
 - Un máximo de dos estudiantes en `members` (el líder y un integrante adicional).
 - Un profesor o tutor opcional en `mentorName` y `mentorDoc`.
-- No hay límite de proyectos por colegio ni por categoría. Las inscripciones se cierran cuando el total global llega a 210 participantes únicos; cada nuevo proyecto se valida para no superar ese máximo.
+- No hay límite de proyectos por colegio ni por categoría. El formulario público se cierra cuando el total global llega a 210 participantes únicos; desde el panel de administración autenticado se pueden agregar inscripciones adicionales sin ese tope. Las demás validaciones, incluida la detección de documentos duplicados, se mantienen.
 - Validación de documentos repetidos entre estudiantes, profesor e inscripciones existentes.
 - Índices únicos para `code` y de consulta para documentos, categoría, estado y ciudad.
 

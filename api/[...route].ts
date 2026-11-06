@@ -163,6 +163,12 @@ api.get('/api/certificates/:id', async (req, res) => {
 
 api.post('/api/registrations', async (req, res) => {
     try {
+        const adminPassword = req.get('x-admin-password');
+        const isAdminRegistration = adminPassword !== undefined;
+        if (isAdminRegistration && !isValidAdminPassword(adminPassword)) {
+            return res.status(401).json({ success: false, message: 'No tienes autorización para crear inscripciones administrativas.' });
+        }
+
         const body = req.body;
         if (!body || !body.teamName || !body.projectTitle || !body.institutionNit || !body.leaderName || !body.leaderDoc || !body.mentorName || !body.mentorDoc || !body.mentorEmail || !body.mentorPhone || !body.category || !body.projectDescription) {
             return res.status(400).json({ success: false, message: 'Faltan campos obligatorios para el registro.' });
@@ -207,23 +213,25 @@ api.post('/api/registrations', async (req, res) => {
             ...existingParticipantDocuments,
             ...allDocuments.map((document: string) => String(document).trim()).filter(Boolean)
         ]).size;
-        if (existingParticipantDocuments.size >= GLOBAL_PARTICIPANT_LIMIT) {
-            return res.status(409).json({
-                success: false,
-                code: 'GLOBAL_PARTICIPANT_LIMIT_REACHED',
-                message: REGISTRATION_CAPACITY_MESSAGE,
-                totalParticipants: existingParticipantDocuments.size,
-                limit: GLOBAL_PARTICIPANT_LIMIT
-            });
-        }
-        if (projectedParticipantCount > GLOBAL_PARTICIPANT_LIMIT) {
-            return res.status(409).json({
-                success: false,
-                code: 'PROJECT_EXCEEDS_GLOBAL_PARTICIPANT_LIMIT',
-                message: `Este proyecto superaría el límite global de ${GLOBAL_PARTICIPANT_LIMIT} participantes.`,
-                totalParticipants: existingParticipantDocuments.size,
-                limit: GLOBAL_PARTICIPANT_LIMIT
-            });
+        if (!isAdminRegistration) {
+            if (existingParticipantDocuments.size >= GLOBAL_PARTICIPANT_LIMIT) {
+                return res.status(409).json({
+                    success: false,
+                    code: 'GLOBAL_PARTICIPANT_LIMIT_REACHED',
+                    message: REGISTRATION_CAPACITY_MESSAGE,
+                    totalParticipants: existingParticipantDocuments.size,
+                    limit: GLOBAL_PARTICIPANT_LIMIT
+                });
+            }
+            if (projectedParticipantCount > GLOBAL_PARTICIPANT_LIMIT) {
+                return res.status(409).json({
+                    success: false,
+                    code: 'PROJECT_EXCEEDS_GLOBAL_PARTICIPANT_LIMIT',
+                    message: `Este proyecto superaría el límite global de ${GLOBAL_PARTICIPANT_LIMIT} participantes.`,
+                    totalParticipants: existingParticipantDocuments.size,
+                    limit: GLOBAL_PARTICIPANT_LIMIT
+                });
+            }
         }
 
         const categoryCode = body.category === 'seguidores' ? 'S' : body.category === 'educativos' ? 'E' : 'A';
